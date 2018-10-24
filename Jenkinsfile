@@ -70,10 +70,16 @@ pipeline {
         withCredentials([file(credentialsId: 'GC_KEY', variable: 'GC_KEY')]) {
             sh("gcloud auth activate-service-account --key-file=${GC_KEY}")
             sh("gcloud container clusters get-credentials gke-demo --zone us-east1-b --project jjahn-demo-1")
-	          sh("gcloud compute instances list")
-  	        sh("kubectl -n dev apply -f manifest/carts.yml")
-	          sh("kubectl get pods -n dev")
-	      }
+	    sh("gcloud compute instances list")
+	    sh '''
+		if [[ $(kubectl get namespace sock-shop | wc -l) -eq 0 ]]; then
+			echo "Create namespace sock-shop..."
+			kubectl create namespace sock-shop
+		fi
+	    '''
+  	    sh("kubectl -n dev apply -f manifest/carts.yml")
+	    sh("kubectl get pods -n dev")
+	}
         
       //sh "kubectl -n dev apply -f manifest/carts.yml"
         //}
