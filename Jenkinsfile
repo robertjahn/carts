@@ -82,6 +82,7 @@ pipeline {
 
         build job: "acm-workshop/jmeter-as-container",
           parameters: [
+            string(name: 'BUILD_JMETER', value: 'no'),
             string(name: 'SCRIPT_NAME', value: 'basiccheck.jmx'),
             string(name: 'SERVER_URL', value: "${env.APP_NAME}.dev"),
             string(name: 'SERVER_PORT', value: '80'),
@@ -104,6 +105,7 @@ pipeline {
       steps {
         build job: "acm-workshop/jmeter-as-container",
           parameters: [
+            string(name: 'BUILD_JMETER', value: 'no'),
             string(name: 'SCRIPT_NAME', value: "${env.APP_NAME}_load.jmx"),
             string(name: 'SERVER_URL', value: "${env.APP_NAME}.dev"),
             string(name: 'SERVER_PORT', value: '80'),
