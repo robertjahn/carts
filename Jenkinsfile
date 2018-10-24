@@ -6,38 +6,26 @@ pipeline {
   environment {
     APP_NAME = "cart"
     VERSION = readFile 'version'
-    //ARTIFACT_ID = "sockshop/" + "${env.APP_NAME}"
     ARTIFACT_ID = "${env.APP_NAME}"
-    //TAG = "${env.DOCKER_REGISTRY_URL}:5000/library/${env.ARTIFACT_ID}"
     TAG = "robjahn/${env.ARTIFACT_ID}"
-    //TAG_DEV = "${env.TAG}-${env.VERSION}-${env.BUILD_NUMBER}"
     TAG_DEV = "${env.VERSION}-${env.BUILD_NUMBER}"
-    //TAG_STAGING = "${env.TAG}-${env.VERSION}"
     TAG_STAGING = "${env.VERSION}"
     SERVICE_URL = "35.231.79.243"	   
+
+    //ARTIFACT_ID = "sockshop/" + "${env.APP_NAME}"
+    //TAG = "${env.DOCKER_REGISTRY_URL}:5000/library/${env.ARTIFACT_ID}"
+    //TAG_DEV = "${env.TAG}-${env.VERSION}-${env.BUILD_NUMBER}"
+    //TAG_STAGING = "${env.TAG}-${env.VERSION}"
   }
   stages {
     stage('Maven build') {
       steps {
+	echo "Building branch_name: ${env.BRANCH_NAME}"
         checkout scm
-        //container('maven') {
         sh 'mvn -B clean package'
-        //}
       }
     }
-    //stage('Docker build') {
-    //  when {
-    //    expression {
-    //      return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
-    //    }
-    //  }
-    //  steps {
-    //    //container('docker') {
-    //      echo "branch_name=${env.BRANCH_NAME}"
-    //      //sh "docker build -t ${env.TAG_DEV} ."
-    //    //}
-    //  }
-    //}
+
     stage('Docker build and push to registry'){
       when {
         expression {
@@ -46,19 +34,12 @@ pipeline {
       }
       steps {
         script {
-            echo "branch_name=${env.BRANCH_NAME}"
-          
             def app
             app = docker.build("${env.TAG}")
             docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
-                //sh "docker build -t $DOCKER_REGISTRY/$APP_NAME ."
-                //sh "docker push $DOCKER_REGISTRY/$APP_NAME"
                 app.push("${env.TAG_DEV}")
             }
         }
-        //container('docker') {
-        //  sh "docker push ${env.TAG_DEV}"
-        //}
       }
     }
     stage('Deploy to dev namespace') {
@@ -68,7 +49,6 @@ pipeline {
         }
       }
       steps {
-        //container('kubectl') {
         sh "sed -i 's#image: .*#image: ${env.TAG_DEV}#' manifest/carts.yml"
         withCredentials([file(credentialsId: 'GC_KEY', variable: 'GC_KEY')]) {
             sh("gcloud auth activate-service-account --key-file=${GC_KEY}")
@@ -80,18 +60,15 @@ pipeline {
 			kubectl create namespace dev
 		fi
 	    '''
-  	    //sh("kubectl -n dev apply -f manifest/carts.yml")
+  	    sh("kubectl -n dev apply -f manifest/carts.yml")
 	    sh("kubectl get pods -n dev")
 	}
-        
-      //sh "kubectl -n dev apply -f manifest/carts.yml"
-        //}
       }
     }
     stage('Run health check in dev') {
       when {
         expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'XXmaster'
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
         }
       }
       steps {
@@ -115,10 +92,11 @@ pipeline {
           ]
       }
     }
+	  
     stage('Run functional check in dev') {
       when {
         expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'XXmaster'
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'XXXXXmaster'
         }
       }
       steps {
@@ -138,6 +116,7 @@ pipeline {
           ]
       }
     }
+	  
     //stage('Mark artifact for staging namespace') {
     //  when {
     //    expression {
@@ -151,6 +130,7 @@ pipeline {
     //    }
     //  }
     //}
+	  
     //stage('Deploy to staging') {
       //when {
       //  beforeAgent true
