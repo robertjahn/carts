@@ -28,10 +28,10 @@ pipeline {
         }
       }
       steps {
-        container('docker') {
+        //container('docker') {
           echo "branch_name=${env.BRANCH_NAME}"
           //sh "docker build -t ${env.TAG_DEV} ."
-        }
+        //}
       }
     }
     stage('Docker push to registry'){
