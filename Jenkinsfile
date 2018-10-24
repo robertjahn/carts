@@ -12,6 +12,7 @@ pipeline {
     TAG = "robjahn/${env.ARTIFACT_ID}"
     TAG_DEV = "${env.TAG}-${env.VERSION}-${env.BUILD_NUMBER}"
     TAG_STAGING = "${env.TAG}-${env.VERSION}"
+    SERVICE_URL = "35.231.79.243"	   
   }
   stages {
     stage('Maven build') {
@@ -95,11 +96,12 @@ pipeline {
         echo "waiting for the service to start..."
         sleep 180
 
+	//string(name: 'SERVER_URL', value: "${env.APP_NAME}.dev"),
         build job: "acm-workshop/jmeter-as-container",
           parameters: [
             string(name: 'BUILD_JMETER', value: 'no'),
             string(name: 'SCRIPT_NAME', value: 'basiccheck.jmx'),
-            string(name: 'SERVER_URL', value: "${env.APP_NAME}.dev"),
+            string(name: 'SERVER_URL', value: "${env.SERVICE_URL}",
             string(name: 'SERVER_PORT', value: '80'),
             string(name: 'CHECK_PATH', value: '/health'),
             string(name: 'VUCount', value: '1'),
@@ -118,11 +120,12 @@ pipeline {
         }
       }
       steps {
+	//string(name: 'SERVER_URL', value: "${env.APP_NAME}.dev"),
         build job: "acm-workshop/jmeter-as-container",
           parameters: [
             string(name: 'BUILD_JMETER', value: 'no'),
             string(name: 'SCRIPT_NAME', value: "${env.APP_NAME}_load.jmx"),
-            string(name: 'SERVER_URL', value: "${env.APP_NAME}.dev"),
+            string(name: 'SERVER_URL', value: "${env.SERVICE_URL}",
             string(name: 'SERVER_PORT', value: '80'),
             string(name: 'CHECK_PATH', value: '/health'),
             string(name: 'VUCount', value: '1'),
