@@ -47,11 +47,11 @@ pipeline {
             echo "branch_name=${env.BRANCH_NAME}"
           
             def app
-            app = docker.build("${env.TAG_DEV}")
+            app = docker.build("${env.TAG}")
             docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
                 //sh "docker build -t $DOCKER_REGISTRY/$APP_NAME ."
                 //sh "docker push $DOCKER_REGISTRY/$APP_NAME"
-                app.push("latest")
+                app.push("${env.TAG_DEV}")
             }
         }
         //container('docker') {
@@ -78,7 +78,7 @@ pipeline {
 			kubectl create namespace dev
 		fi
 	    '''
-  	    sh("kubectl -n dev apply -f manifest/carts.yml")
+  	    //sh("kubectl -n dev apply -f manifest/carts.yml")
 	    sh("kubectl get pods -n dev")
 	}
         
@@ -89,7 +89,7 @@ pipeline {
     stage('Run health check in dev') {
       when {
         expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'XXmaster'
         }
       }
       steps {
@@ -116,7 +116,7 @@ pipeline {
     stage('Run functional check in dev') {
       when {
         expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'XXmaster'
         }
       }
       steps {
