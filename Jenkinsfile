@@ -93,7 +93,7 @@ pipeline {
       }
       steps {
         echo "waiting for the service to start..."
-        //sleep 90
+        sleep 90
 
         build job: "acm-workshop/jmeter-as-container",
           parameters: [
