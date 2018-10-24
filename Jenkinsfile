@@ -22,20 +22,20 @@ pipeline {
         //}
       }
     }
-    stage('Docker build') {
-      when {
-        expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
-        }
-      }
-      steps {
-        //container('docker') {
-          echo "branch_name=${env.BRANCH_NAME}"
-          //sh "docker build -t ${env.TAG_DEV} ."
-        //}
-      }
-    }
-    stage('Docker push to registry'){
+    //stage('Docker build') {
+    //  when {
+    //    expression {
+    //      return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
+    //    }
+    //  }
+    //  steps {
+    //    //container('docker') {
+    //      echo "branch_name=${env.BRANCH_NAME}"
+    //      //sh "docker build -t ${env.TAG_DEV} ."
+    //    //}
+    //  }
+    //}
+    stage('Docker build and push to registry'){
       when {
         expression {
           return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
@@ -43,9 +43,10 @@ pipeline {
       }
       steps {
         script {
+            echo "branch_name=${env.BRANCH_NAME}"
+          
             def app
             app = docker.build("${env.TAG_DEV}")
-
             docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
                 //sh "docker build -t $DOCKER_REGISTRY/$APP_NAME ."
                 //sh "docker push $DOCKER_REGISTRY/$APP_NAME"
@@ -66,6 +67,14 @@ pipeline {
       steps {
         //container('kubectl') {
         sh "sed -i 's#image: .*#image: ${env.TAG_DEV}#' manifest/carts.yml"
+        withCredentials([file(credentialsId: 'GC_KEY', variable: 'GC_KEY')]) {
+            sh("gcloud auth activate-service-account --key-file=${GC_KEY}")
+            sh("gcloud container clusters get-credentials gke-demo --zone us-east1-b --project jjahn-demo-1")
+	          sh("gcloud compute instances list")
+  	        sh("kubectl -n dev apply -f manifest/carts.yml")
+	          sh("kubectl get pods -n dev")
+	      }
+        
       //sh "kubectl -n dev apply -f manifest/carts.yml"
         //}
       }
