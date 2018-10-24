@@ -64,10 +64,10 @@ pipeline {
         }
       }
       steps {
-        container('kubectl') {
-          sh "sed -i 's#image: .*#image: ${env.TAG_DEV}#' manifest/carts.yml"
-          //sh "kubectl -n dev apply -f manifest/carts.yml"
-        }
+        //container('kubectl') {
+        sh "sed -i 's#image: .*#image: ${env.TAG_DEV}#' manifest/carts.yml"
+      //sh "kubectl -n dev apply -f manifest/carts.yml"
+        //}
       }
     }
     stage('Run health check in dev') {
