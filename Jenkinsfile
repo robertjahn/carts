@@ -1,17 +1,21 @@
 pipeline {
   agent any
-  //agent {
-  //  label 'maven'
-  //}
   environment {
     APP_NAME = "cart"
     VERSION = readFile 'version'
     ARTIFACT_ID = "${env.APP_NAME}"
+
+    //DockerHub public requires format of <account>/<repo>
+    // so must alter format
     TAG = "robjahn/${env.ARTIFACT_ID}"
     TAG_DEV = "${env.VERSION}-${env.BUILD_NUMBER}"
     TAG_STAGING = "${env.VERSION}"
+	  
+    // hardcoded for now since dont have a DNS	
+    // DT project uses this //string(name: 'SERVER_URL', value: "${env.APP_NAME}.dev"),	  
     SERVICE_URL = "35.231.79.243"	   
 
+    // These are DT project values	  
     //ARTIFACT_ID = "sockshop/" + "${env.APP_NAME}"
     //TAG = "${env.DOCKER_REGISTRY_URL}:5000/library/${env.ARTIFACT_ID}"
     //TAG_DEV = "${env.TAG}-${env.VERSION}-${env.BUILD_NUMBER}"
@@ -75,7 +79,6 @@ pipeline {
         echo "waiting for the service to start..."
         sleep 180
 
-	//string(name: 'SERVER_URL', value: "${env.APP_NAME}.dev"),
         build job: "acm-workshop/jmeter-as-container",
           parameters: [
             string(name: 'BUILD_JMETER', value: 'no'),
@@ -100,7 +103,6 @@ pipeline {
         }
       }
       steps {
-	//string(name: 'SERVER_URL', value: "${env.APP_NAME}.dev"),
         build job: "acm-workshop/jmeter-as-container",
           parameters: [
             string(name: 'BUILD_JMETER', value: 'no'),
