@@ -4,7 +4,7 @@ pipeline {
   //  label 'maven'
   //}
   environment {
-    APP_NAME = "carts"
+    APP_NAME = "cart"
     VERSION = readFile 'version'
     //ARTIFACT_ID = "sockshop/" + "${env.APP_NAME}"
     ARTIFACT_ID = "${env.APP_NAME}"
