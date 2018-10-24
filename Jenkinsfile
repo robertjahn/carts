@@ -10,8 +10,10 @@ pipeline {
     ARTIFACT_ID = "${env.APP_NAME}"
     //TAG = "${env.DOCKER_REGISTRY_URL}:5000/library/${env.ARTIFACT_ID}"
     TAG = "robjahn/${env.ARTIFACT_ID}"
-    TAG_DEV = "${env.TAG}-${env.VERSION}-${env.BUILD_NUMBER}"
-    TAG_STAGING = "${env.TAG}-${env.VERSION}"
+    //TAG_DEV = "${env.TAG}-${env.VERSION}-${env.BUILD_NUMBER}"
+    TAG_DEV = "${env.VERSION}-${env.BUILD_NUMBER}"
+    //TAG_STAGING = "${env.TAG}-${env.VERSION}"
+    TAG_STAGING = "${env.VERSION}"
     SERVICE_URL = "35.231.79.243"	   
   }
   stages {
