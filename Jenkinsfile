@@ -16,9 +16,9 @@ pipeline {
     stage('Maven build') {
       steps {
         checkout scm
-        container('maven') {
-          sh 'mvn -B clean package'
-        }
+        //container('maven') {
+        sh 'mvn -B clean package'
+        //}
       }
     }
     stage('Docker build') {
