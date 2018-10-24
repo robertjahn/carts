@@ -73,8 +73,8 @@ pipeline {
 	    sh("gcloud compute instances list")
 	    sh '''
 		if [[ $(kubectl get namespace sock-shop | wc -l) -eq 0 ]]; then
-			echo "Create namespace sock-shop..."
-			kubectl create namespace sock-shop
+			echo "Create namespace dev..."
+			kubectl create namespace dev
 		fi
 	    '''
   	    sh("kubectl -n dev apply -f manifest/carts.yml")
