@@ -80,7 +80,7 @@ pipeline {
         echo "waiting for the service to start..."
         //sleep 90
 
-        build job: "jmeter-tests",
+        build job: "jmeter-as-container",
           parameters: [
             string(name: 'SCRIPT_NAME', value: 'basiccheck.jmx'),
             string(name: 'SERVER_URL', value: "${env.APP_NAME}.dev"),
