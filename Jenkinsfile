@@ -1,12 +1,14 @@
 pipeline {
-  agent {
-    label 'maven'
-  }
+  agent any
+  //agent {
+  //  label 'maven'
+  //}
   environment {
     APP_NAME = "carts"
     VERSION = readFile 'version'
-    ARTEFACT_ID = "sockshop/" + "${env.APP_NAME}"
-    TAG = "${env.DOCKER_REGISTRY_URL}:5000/library/${env.ARTEFACT_ID}"
+    ARTIFACT_ID = "sockshop/" + "${env.APP_NAME}"
+    //TAG = "${env.DOCKER_REGISTRY_URL}:5000/library/${env.ARTIFACT_ID}"
+    TAG = "library/${env.ARTIFACT_ID}"
     TAG_DEV = "${env.TAG}-${env.VERSION}-${env.BUILD_NUMBER}"
     TAG_STAGING = "${env.TAG}-${env.VERSION}"
   }
@@ -28,8 +30,7 @@ pipeline {
       steps {
         container('docker') {
           echo "branch_name=${env.BRANCH_NAME}"
-
-          sh "docker build -t ${env.TAG_DEV} ."
+          //sh "docker build -t ${env.TAG_DEV} ."
         }
       }
     }
@@ -40,9 +41,19 @@ pipeline {
         }
       }
       steps {
-        container('docker') {
-          sh "docker push ${env.TAG_DEV}"
+        script {
+            def app
+            app = docker.build("${env.TAG_DEV}")
+
+            docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
+                //sh "docker build -t $DOCKER_REGISTRY/$APP_NAME ."
+                //sh "docker push $DOCKER_REGISTRY/$APP_NAME"
+                app.push("latest")
+            }
         }
+        //container('docker') {
+        //  sh "docker push ${env.TAG_DEV}"
+        //}
       }
     }
     stage('Deploy to dev namespace') {
@@ -54,7 +65,7 @@ pipeline {
       steps {
         container('kubectl') {
           sh "sed -i 's#image: .*#image: ${env.TAG_DEV}#' manifest/carts.yml"
-          sh "kubectl -n dev apply -f manifest/carts.yml"
+          //sh "kubectl -n dev apply -f manifest/carts.yml"
         }
       }
     }
@@ -66,7 +77,7 @@ pipeline {
       }
       steps {
         echo "waiting for the service to start..."
-        sleep 90
+        //sleep 90
 
         build job: "jmeter-tests",
           parameters: [
@@ -104,38 +115,38 @@ pipeline {
           ]
       }
     }
-    stage('Mark artifact for staging namespace') {
-      when {
-        expression {
-          return env.BRANCH_NAME ==~ 'release/.*'
-        }
-      }
-      steps {
-        container('docker'){
-          sh "docker tag ${env.TAG_DEV} ${env.TAG_STAGING}"
-          sh "docker push ${env.TAG_STAGING}"
-        }
-      }
-    }
-    stage('Deploy to staging') {
-      when {
-        beforeAgent true
-        expression {
-          return env.BRANCH_NAME ==~ 'release/.*'
-        }
-      }
-      agent {
-        label 'git'
-      }
-      steps {
-        withCredentials([usernamePassword(credentialsId: 'git-credentials-acm', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
-            sh "git config --global user.email ${env.GIT_USER_EMAIL}"
-            sh "git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/dynatrace-sockshop/k8s-deploy-staging"
-            sh "cd k8s-deploy-staging/ && sed -i 's#image: .*#image: ${env.TAG_STAGING}#' carts.yml"
-            sh "cd k8s-deploy-staging/ && git add carts.yml && git commit -m 'Update carts version ${env.VERSION}'"
-            sh 'cd k8s-deploy-staging/ && git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/dynatrace-sockshop/k8s-deploy-staging'
-        }
-      }
+    //stage('Mark artifact for staging namespace') {
+    //  when {
+    //    expression {
+    //      return env.BRANCH_NAME ==~ 'release/.*'
+    //    }
+    //  }
+    //  steps {
+    //    container('docker'){
+    //      sh "docker tag ${env.TAG_DEV} ${env.TAG_STAGING}"
+    //      sh "docker push ${env.TAG_STAGING}"
+    //    }
+    //  }
+    //}
+    //stage('Deploy to staging') {
+      //when {
+      //  beforeAgent true
+      //  expression {
+      //    return env.BRANCH_NAME ==~ 'release/.*'
+      //  }
+      //}
+      //agent {
+      //  label 'git'
+      //}
+      //steps {
+        //withCredentials([usernamePassword(credentialsId: 'git-credentials-acm', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+        //    sh "git config --global user.email ${env.GIT_USER_EMAIL}"
+        //    sh "git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/dynatrace-sockshop/k8s-deploy-staging"
+        //    sh "cd k8s-deploy-staging/ && sed -i 's#image: .*#image: ${env.TAG_STAGING}#' carts.yml"
+        //    sh "cd k8s-deploy-staging/ && git add carts.yml && git commit -m 'Update carts version ${env.VERSION}'"
+        //    sh 'cd k8s-deploy-staging/ && git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/dynatrace-sockshop/k8s-deploy-staging'
+        //}
+      //}
     }
   }
 }
