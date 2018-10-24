@@ -102,7 +102,7 @@ pipeline {
         }
       }
       steps {
-        build job: "jmeter-tests",
+        build job: "acm-workshop/jmeter-as-container",
           parameters: [
             string(name: 'SCRIPT_NAME', value: "${env.APP_NAME}_load.jmx"),
             string(name: 'SERVER_URL', value: "${env.APP_NAME}.dev"),
