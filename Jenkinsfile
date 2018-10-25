@@ -1,4 +1,4 @@
-def fileSubstitute(placeholder, value, file) {
+def fileValueSubstitute(placeholder, value, file) {
    sh "sed -i.bak s/:\\\${$placeholder}/:$value/g $file.yml"
 }
 
@@ -57,11 +57,12 @@ pipeline {
     stage('Deploy to dev namespace') {
       when {
         expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'XXXmaster'
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
         }
       }
       steps {
-        sh "sed -i 's#image: .*#image: ${env.TAG}:${env.TAG_DEV}#' manifest/carts.yml"
+        //sh "sed -i 's#image: .*#image: ${env.TAG}:${env.TAG_DEV}#' manifest/carts.yml"
+	fileValueSubstitute("to-be-replaced-by-jenkins-hehe", "${env.TAG}:${env.TAG_DEV}", "manifest/carts.yml")      
         withCredentials([file(credentialsId: 'GC_KEY', variable: 'GC_KEY')]) {
             sh("gcloud auth activate-service-account --key-file=${GC_KEY}")
             sh("gcloud container clusters get-credentials gke-demo --zone us-east1-b --project jjahn-demo-1")
@@ -72,7 +73,7 @@ pipeline {
 			kubectl create namespace dev
 		fi
 	    '''
-  	    sh("kubectl -n dev apply -f manifest/carts.yml")
+  	    //sh("kubectl -n dev apply -f manifest/carts.yml")
 	    sh("kubectl get pods -n dev")
 	}
       }
