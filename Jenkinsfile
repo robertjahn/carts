@@ -5,18 +5,18 @@ pipeline {
     VERSION = readFile 'version'
     ARTIFACT_ID = "${env.APP_NAME}"
 
-    //DockerHub public requires format of <account>/<repo>
-    // so must alter format
+    //DockerHub public requires format of <account>/<repo>:<tag>
+    //and does not support multiple forward slashes in the name, so must alter format
     REPOSITORY = "robjahn/${env.ARTIFACT_ID}"
     TAG_DEV = "${env.VERSION}-SNAPHOT-${env.BUILD_NUMBER}"
     TAG_STAGING = "${env.VERSION}"
 	  
     // hardcoded for now within Jenkins Global Properties since dont have a DNS.  
     // can later adjust logic use kubectl get service as an approach
-    // DT project uses this //string(name: 'SERVER_URL', value: "${env.APP_NAME}.dev"),	  
     SERVICE_URL = "${CART_SERVICE_IP}"	   
 	  	  
-    // These are DT project values	  
+    //These are the original DT project values
+    //string(name: 'SERVER_URL', value: "${env.APP_NAME}.dev"),	  
     //ARTIFACT_ID = "sockshop/" + "${env.APP_NAME}"
     //TAG = "${env.DOCKER_REGISTRY_URL}:5000/library/${env.ARTIFACT_ID}"
     //TAG_DEV = "${env.TAG}-${env.VERSION}-${env.BUILD_NUMBER}"
@@ -122,15 +122,13 @@ pipeline {
     stage('Mark artifact for staging namespace') {
         when {
             expression {
+		//return env.BRANCH_NAME ==~ 'release/.*'    
 		return env.BRANCH_NAME ==~ 'master'
             }
         }
         steps {
 	    script {
-                //withDockerRegistry([ credentialsId: "dockerhub", url: "https://hub.docker.com" ]) {
-                //    sh "docker tag ${env.REPOSITORY} ${env.REPOSITORY}:${env.TAG_STAGING}"
-		//    sh "docker push ${env.REPOSITORY}:${env.TAG_STAGING}"
-		//}
+                //now that passed tests, then tag the image just built and push with just the version tag
 		docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
                     docker.image("${env.REPOSITORY}:${env.TAG_DEV}").push("${env.TAG_STAGING}")
                 }    
