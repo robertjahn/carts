@@ -1,5 +1,5 @@
 def fileValueSubstitute(placeholder, value, file) {
-   sh "sed -i.bak s/:\\\${$placeholder}/:$value/g $file.yml"
+   sh "sed -i.bak s/:\\\${$placeholder}/:$value/g $file"
 }
 
 pipeline {
