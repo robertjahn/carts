@@ -11,10 +11,11 @@ pipeline {
     TAG_DEV = "${env.VERSION}-${env.BUILD_NUMBER}"
     TAG_STAGING = "${env.VERSION}"
 	  
-    // hardcoded for now since dont have a DNS	
+    // hardcoded for now within Jenkins Global Properties since dont have a DNS.  
+    // can later adjust logic use kubectl get service as an approach
     // DT project uses this //string(name: 'SERVER_URL', value: "${env.APP_NAME}.dev"),	  
-    SERVICE_URL = "35.231.79.243"	   
-
+    SERVICE_URL = ${CART_SERVICE_IP}	   
+	  	  
     // These are DT project values	  
     //ARTIFACT_ID = "sockshop/" + "${env.APP_NAME}"
     //TAG = "${env.DOCKER_REGISTRY_URL}:5000/library/${env.ARTIFACT_ID}"
@@ -49,7 +50,7 @@ pipeline {
     stage('Deploy to dev namespace') {
       when {
         expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'XXXmaster'
         }
       }
       steps {
@@ -72,7 +73,7 @@ pipeline {
     stage('Run health check in dev') {
       when {
         expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'XXXmaster'
         }
       }
       steps {
@@ -99,7 +100,7 @@ pipeline {
     stage('Run functional check in dev') {
       when {
         expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'XXXmaster'
         }
       }
       steps {
@@ -119,19 +120,23 @@ pipeline {
       }
     }
 	  
-    //stage('Mark artifact for staging namespace') {
-    //  when {
-    //    expression {
-    //      return env.BRANCH_NAME ==~ 'release/.*'
-    //    }
-    //  }
-    //  steps {
-    //    container('docker'){
-    //      sh "docker tag ${env.TAG_DEV} ${env.TAG_STAGING}"
-    //      sh "docker push ${env.TAG_STAGING}"
-    //    }
-    //  }
-    //}
+    stage('Mark artifact for staging namespace') {
+        when {
+            expression {
+                //return env.BRANCH_NAME ==~ 'release/.*'
+		return env.BRANCH_NAME ==~ 'master/.*'
+            }
+        }
+        steps {
+	    script {
+                withDockerRegistry([ credentialsId: "dockerhub", url: "https://registry.hub.docker.com" ]) {
+                    // following commands will be executed within logged docker registry
+                    sh "docker tag ${env.TAG}:${env.TAG_DEV} ${env.TAG_STAGING}"
+		    sh "docker push ${env.TAG}:${env.TAG_STAGING}"
+		}
+            }
+        }
+    }
 	  
     //stage('Deploy to staging') {
       //when {
