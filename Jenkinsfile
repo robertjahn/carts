@@ -23,7 +23,6 @@ pipeline {
     //TAG_STAGING = "${env.TAG}-${env.VERSION}"
   }
   stages {
-    def image
     stage('Maven Build') {
       steps {
 	echo "Building branch_name: ${env.BRANCH_NAME}"
@@ -39,10 +38,10 @@ pipeline {
       }
       steps {
         script {
-            
-            image = docker.build("${env.REPOSITORY}")
+            def image
+            image = docker.build("${env.REPOSITORY}:${env.TAG_DEV}")
             docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
-                image.push("${env.TAG_DEV}")
+                image.push()
             }
         }
       }
