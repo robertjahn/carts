@@ -23,6 +23,7 @@ pipeline {
     //TAG_STAGING = "${env.TAG}-${env.VERSION}"
   }
   stages {
+    def image
     stage('Maven Build') {
       steps {
 	echo "Building branch_name: ${env.BRANCH_NAME}"
@@ -38,7 +39,7 @@ pipeline {
       }
       steps {
         script {
-            def image
+            
             image = docker.build("${env.REPOSITORY}")
             docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
                 image.push("${env.TAG_DEV}")
@@ -127,10 +128,13 @@ pipeline {
         }
         steps {
 	    script {
-                withDockerRegistry([ credentialsId: "dockerhub", url: "https://hub.docker.com" ]) {
-                    sh "docker tag ${env.REPOSITORY} ${env.REPOSITORY}:${env.TAG_STAGING}"
-		    sh "docker push ${env.REPOSITORY}:${env.TAG_STAGING}"
-		}
+                //withDockerRegistry([ credentialsId: "dockerhub", url: "https://hub.docker.com" ]) {
+                //    sh "docker tag ${env.REPOSITORY} ${env.REPOSITORY}:${env.TAG_STAGING}"
+		//    sh "docker push ${env.REPOSITORY}:${env.TAG_STAGING}"
+		//}
+		docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
+                    image.push("${env.TAG_STAGING}")
+                }    
             }
         }
     }
