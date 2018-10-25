@@ -7,8 +7,8 @@ pipeline {
 
     //DockerHub public requires format of <account>/<repo>
     // so must alter format
-    TAG = "robjahn/${env.ARTIFACT_ID}"
-    TAG_DEV = "${env.VERSION}-${env.BUILD_NUMBER}"
+    REPOSITORY = "robjahn/${env.ARTIFACT_ID}"
+    TAG_DEV = "${env.VERSION}-SNAPHOT-${env.BUILD_NUMBER}"
     TAG_STAGING = "${env.VERSION}"
 	  
     // hardcoded for now within Jenkins Global Properties since dont have a DNS.  
@@ -39,10 +39,10 @@ pipeline {
       }
       steps {
         script {
-            def app
-            app = docker.build("${env.TAG}")
+            def image
+            image = docker.build("${env.REPOSITORY}")
             docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
-                app.push("${env.TAG_DEV}")
+                image.push("${env.TAG_DEV}")
             }
         }
       }
@@ -129,9 +129,8 @@ pipeline {
         steps {
 	    script {
                 withDockerRegistry([ credentialsId: "dockerhub", url: "https://registry.hub.docker.com" ]) {
-                    // following commands will be executed within logged docker registry
-                    sh "docker tag ${env.TAG}:${env.TAG_DEV} ${env.TAG_STAGING}"
-		    sh "docker push ${env.TAG}:${env.TAG_STAGING}"
+                    sh "docker tag ${env.REPOSITORY} ${env.TAG_STAGING}"
+		    sh "docker push ${env.REPOSITORY}:${env.TAG_STAGING}"
 		}
             }
         }
