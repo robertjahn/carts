@@ -127,7 +127,7 @@ pipeline {
         }
         steps {
 	    script {
-                withDockerRegistry([ credentialsId: "dockerhub", url: "https://registry.hub.docker.com" ]) {
+                withDockerRegistry([ credentialsId: "dockerhub", url: "https://hub.docker.com/r/robjahn" ]) {
                     sh "docker tag ${env.REPOSITORY} ${env.REPOSITORY}:${env.TAG_STAGING}"
 		    sh "docker push ${env.REPOSITORY}:${env.TAG_STAGING}"
 		}
