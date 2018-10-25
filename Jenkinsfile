@@ -1,5 +1,5 @@
-def fileValueSubstitute(placeholder, value, file) {
-   sh "sed -i.bak s/:\\\${$placeholder}/:$value/g $file"
+def fileValueSubstitute(find_this, replace_with, file) {
+   sh "sed -i.bak 's/$find_this/$replace_with/g' $file"
 }
 
 pipeline {
