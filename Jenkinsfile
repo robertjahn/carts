@@ -61,8 +61,8 @@ pipeline {
         }
       }
       steps {
-        //sh "sed -i 's#image: .*#image: ${env.TAG}:${env.TAG_DEV}#' manifest/carts.yml"
-	fileValueSubstitute("to-be-replaced-by-jenkins-hehe", "${env.TAG}:${env.TAG_DEV}", "manifest/carts.yml")      
+        //sh "sed -i 's#image: .*#image: ${env.REPOSITORY}:${env.TAG_DEV}#' manifest/carts.yml"
+	fileValueSubstitute("to-be-replaced-by-jenkins-hehe", "${env.REPOSITORY}:${env.TAG_DEV}", "manifest/carts.yml")      
         withCredentials([file(credentialsId: 'GC_KEY', variable: 'GC_KEY')]) {
             sh("gcloud auth activate-service-account --key-file=${GC_KEY}")
             sh("gcloud container clusters get-credentials gke-demo --zone us-east1-b --project jjahn-demo-1")
