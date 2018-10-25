@@ -1,3 +1,7 @@
+def fileSubstitute(placeholder, value, file) {
+   sh "sed -i.bak s/:\\\${$placeholder}/:$value/g $file.yml"
+}
+
 pipeline {
   agent any
   environment {
@@ -27,9 +31,6 @@ pipeline {
     //TAG_STAGING = "${env.TAG}-${env.VERSION}"
   }	
   stages {
-    def fileSubstitute(placeholder, value, file) {
-      sh "sed -i.bak s/:\\\${$placeholder}/:$value/g $file.yml"
-    }
     stage('Maven Build') {
       steps {
 	echo "Building branch_name: ${env.BRANCH_NAME}"
