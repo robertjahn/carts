@@ -14,7 +14,7 @@ pipeline {
     // hardcoded for now within Jenkins Global Properties since dont have a DNS.  
     // can later adjust logic use kubectl get service as an approach
     // DT project uses this //string(name: 'SERVER_URL', value: "${env.APP_NAME}.dev"),	  
-    SERVICE_URL = ${CART_SERVICE_IP}	   
+    SERVICE_URL = "${CART_SERVICE_IP}"	   
 	  	  
     // These are DT project values	  
     //ARTIFACT_ID = "sockshop/" + "${env.APP_NAME}"
