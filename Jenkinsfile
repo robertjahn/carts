@@ -26,6 +26,9 @@ pipeline {
     //TAG_DEV = "${env.TAG}-${env.VERSION}-${env.BUILD_NUMBER}"
     //TAG_STAGING = "${env.TAG}-${env.VERSION}"
   }
+  def fileSubstitute(placeholder, value, file) {
+      sh "sed -i.bak s/:\\\${$placeholder}/:$value/g $file.yml"
+  }	
   stages {
     stage('Maven Build') {
       steps {
