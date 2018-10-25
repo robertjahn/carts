@@ -132,7 +132,7 @@ pipeline {
 		//    sh "docker push ${env.REPOSITORY}:${env.TAG_STAGING}"
 		//}
 		docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
-                    image.push("${env.TAG_STAGING}")
+                    docker.image("${env.REPOSITORY}:${env.TAG_DEV}").push("${env.TAG_STAGING}")
                 }    
             }
         }
