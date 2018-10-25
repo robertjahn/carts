@@ -25,11 +25,11 @@ pipeline {
     //TAG = "${env.DOCKER_REGISTRY_URL}:5000/library/${env.ARTIFACT_ID}"
     //TAG_DEV = "${env.TAG}-${env.VERSION}-${env.BUILD_NUMBER}"
     //TAG_STAGING = "${env.TAG}-${env.VERSION}"
-  }
-  def fileSubstitute(placeholder, value, file) {
-      sh "sed -i.bak s/:\\\${$placeholder}/:$value/g $file.yml"
   }	
   stages {
+    def fileSubstitute(placeholder, value, file) {
+      sh "sed -i.bak s/:\\\${$placeholder}/:$value/g $file.yml"
+    }
     stage('Maven Build') {
       steps {
 	echo "Building branch_name: ${env.BRANCH_NAME}"
