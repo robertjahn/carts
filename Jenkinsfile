@@ -14,8 +14,12 @@ pipeline {
     // hardcoded for now within Jenkins Global Properties since dont have a DNS.  
     // can later adjust logic use kubectl get service as an approach
     SERVICE_URL = "${CART_SERVICE_IP}"	   
+	  
+    // also need to figure out how to update or use DNS for the mongo DB defined here:
+    // https://github.com/robertjahn/carts/blob/master/src/main/resources/application.properties  
+    //	  spring.data.mongodb.uri=mongodb://10.55.247.203/data
 	  	  
-    //These are the original DT project values
+    //These are the original DT project values:
     //string(name: 'SERVER_URL', value: "${env.APP_NAME}.dev"),	  
     //ARTIFACT_ID = "sockshop/" + "${env.APP_NAME}"
     //TAG = "${env.DOCKER_REGISTRY_URL}:5000/library/${env.ARTIFACT_ID}"
