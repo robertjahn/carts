@@ -123,7 +123,6 @@ pipeline {
     stage('Mark artifact for staging namespace') {
         when {
             expression {
-                //return env.BRANCH_NAME ==~ 'release/.*'
 		return env.BRANCH_NAME ==~ 'master/.*'
             }
         }
