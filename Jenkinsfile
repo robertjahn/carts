@@ -23,10 +23,9 @@ pipeline {
     //TAG_STAGING = "${env.TAG}-${env.VERSION}"
   }
   stages {
-    stage('Maven build') {
+    stage('Maven Build') {
       steps {
 	echo "Building branch_name: ${env.BRANCH_NAME}"
-        checkout scm
         sh 'mvn -B clean package'
       }
     }
@@ -129,7 +128,7 @@ pipeline {
         steps {
 	    script {
                 withDockerRegistry([ credentialsId: "dockerhub", url: "https://registry.hub.docker.com" ]) {
-                    sh "docker tag ${env.REPOSITORY} ${env.TAG_STAGING}"
+                    sh "docker tag ${env.REPOSITORY} ${env.REPOSITORY}:${env.TAG_STAGING}"
 		    sh "docker push ${env.REPOSITORY}:${env.TAG_STAGING}"
 		}
             }
