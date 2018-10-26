@@ -36,20 +36,21 @@ pipeline {
 
   stages {
     stage('Checkout') {
+      steps {
+        // into a deployment subdirectory we checkout the kubectl deployment scripts
+        dir ('sockshop-deploy') {
+          git url: 'https://github.com/robertjahn/sockshop-deploy.git', branch: 'master'
+        }
 
-      // into a deployment subdirectory we checkout the kubectl deployment scripts
-      dir ('sockshop-deploy') {
-        git url: 'https://github.com/robertjahn/sockshop-deploy.git', branch: 'master'
-      }
+        // into a deployment subdirectory we checkout the utility scripts
+        dir ('sockshop-utils') {
+          git url: 'https://github.com/robertjahn/sockshop-utils.git', branch: 'master'
+        }
 
-      // into a deployment subdirectory we checkout the kubectl deployment scripts
-      dir ('sockshop-utils') {
-        git url: 'https://github.com/robertjahn/sockshop-utils.git', branch: 'master'
-      }
-
-      // into a dynatrace-cli subdirectory we checkout the CLI
-      dir ('dynatrace-cli') {
+        // into a dynatrace-cli subdirectory we checkout the Dynatrace CLI
+        dir ('dynatrace-cli') {
           git url: 'https://github.com/Dynatrace/dynatrace-cli.git', branch: 'master'
+        }
       }
     }
     stage('Maven Build') {
