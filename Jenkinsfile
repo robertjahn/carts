@@ -31,7 +31,7 @@ pipeline {
 
     stage('Maven Build') {
       steps {
-	echo "Building branch_name: ${env.BRANCH_NAME}"
+	    echo "Building branch_name: ${env.BRANCH_NAME}"
         sh 'mvn -B clean package -DskipTests'
       }
     }
@@ -42,7 +42,7 @@ pipeline {
         dir ('sockshop-deploy') {
           withCredentials([usernamePassword(credentialsId: 'github', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
             git url: "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/robertjahn/sockshop-deploy.git", branch: "master"
-	  }  
+	      }
         }
 
         // into a deployment subdirectory we checkout the utility scripts
@@ -195,7 +195,6 @@ pipeline {
             }
         }
 
-    }
 
     stage('Check in Production deployment change') {
         when {
@@ -211,6 +210,7 @@ pipeline {
             sh 'cd sockshop-deploy/ && git push origin master'
         }
     }
+
     stage('Deploy to prod namespace') {
         when {
             expression {
@@ -241,4 +241,5 @@ pipeline {
             }
         }
     }
+  }
 }
