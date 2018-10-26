@@ -98,12 +98,7 @@ pipeline {
           withCredentials([file(credentialsId: 'GC_KEY', variable: 'GC_KEY')]) {
             sh("gcloud auth activate-service-account --key-file=${GC_KEY}")
             sh("gcloud container clusters get-credentials gke-demo --zone us-east1-b --project jjahn-demo-1")
-	    sh '''
-              if [[ $(kubectl get namespace | grep -x stage | wc -l) -eq 0 ]]; then
-		 echo "Create namespace stage..."
-		 kubectl create namespace stage
-	      fi
-	    '''
+	    sh("./sockshop-utils/create_namespace.sh stage")
   	    sh("kubectl apply -f sockshop-deploy/stage/carts.yml")
   	    sh("kubectl apply -f sockshop-deploy/stage/carts-svc.yml")
             sleep 10
