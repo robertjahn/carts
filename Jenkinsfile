@@ -34,7 +34,8 @@ pipeline {
     //TAG_STAGING = "${env.TAG}-${env.VERSION}"
   }	
 
-  stage('Checkout') {
+  stages {
+    stage('Checkout') {
 
       // into a deployment subdirectory we checkout the kubectl deployment scripts
       dir ('sockshop-deploy') {
@@ -50,9 +51,7 @@ pipeline {
       dir ('dynatrace-cli') {
           git url: 'https://github.com/Dynatrace/dynatrace-cli.git', branch: 'master'
       }
-  }
-
-  stages {
+    }
     stage('Maven Build') {
       steps {
 	echo "Building branch_name: ${env.BRANCH_NAME}"
