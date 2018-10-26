@@ -76,7 +76,7 @@ pipeline {
     stage('Deploy to staging namespace') {
       when {
         expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'XXXmaster'
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
         }
       }
       steps {
@@ -99,7 +99,8 @@ pipeline {
 
             echo "waiting for the service to start..."
             sleep 180
-            sh "kubectl get pods -n staging"
+            sh "kubectl -n staging get pods"
+	    sh "kubectl -n staging get service"		  
           }
         }
       }
@@ -107,7 +108,7 @@ pipeline {
     stage('Run health check in staging') {
       when {
         expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'XXXmaster'
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
         }
       }
       steps {
@@ -132,7 +133,7 @@ pipeline {
     stage('Run load test in staging') {
       when {
         expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'XXXmaster'
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
         }
       }
       steps {
@@ -235,9 +236,10 @@ pipeline {
                     sh "kubectl apply -f sockshop-deploy/prod/carts.yml"
                     sh "kubectl apply -f sockshop-deploy/prod/carts-svc.yml"
 
-                    //echo "waiting for the service to start..."
-                    //sleep 180
-                    sh "kubectl get pods -n prod"
+                    echo "waiting for the service to start..."
+                    sleep 180
+                    sh "kubectl -n prod get pods"
+		    sh "kubectl -n prod get service"
                 }
             }
         }
