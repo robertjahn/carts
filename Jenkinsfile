@@ -237,7 +237,7 @@ pipeline {
 
                     //echo "waiting for the service to start..."
                     //sleep 180
-                    //sh "kubectl get pods -n prod"
+                    sh "kubectl get pods -n prod"
                 }
             }
         }
