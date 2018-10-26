@@ -231,13 +231,13 @@ pipeline {
                 withCredentials([file(credentialsId: 'GC_KEY', variable: 'GC_KEY')]) {
                     sh "gcloud auth activate-service-account --key-file=${GC_KEY}"
                     sh "gcloud container clusters get-credentials ${GC_CLUSTER} --zone ${GC_ZONE} --project ${GC_PROJECT}"
-                    sh ./sockshop-utils/create_namespace.sh prod
-                    sh "kubectl apply -f sockshop-deploy/prod/carts.yml"
-                    sh "kubectl apply -f sockshop-deploy/prod/carts-svc.yml"
+                    //sh "./sockshop-utils/create_namespace.sh prod"
+                    //sh "kubectl apply -f sockshop-deploy/prod/carts.yml"
+                    //sh "kubectl apply -f sockshop-deploy/prod/carts-svc.yml"
 
-                    echo "waiting for the service to start..."
-                    sleep 180
-                    sh "kubectl get pods -n prod"
+                    //echo "waiting for the service to start..."
+                    //sleep 180
+                    //sh "kubectl get pods -n prod"
                 }
             }
         }
