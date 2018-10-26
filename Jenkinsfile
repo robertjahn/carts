@@ -41,7 +41,7 @@ pipeline {
         // into a deployment subdirectory we checkout the kubectl deployment scripts
         dir ('sockshop-deploy') {
           withCredentials([usernamePassword(credentialsId: 'github', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
-            git url: 'https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/robertjahn/sockshop-deploy.git', branch: 'master'
+            git url: "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/robertjahn/sockshop-deploy.git", branch: "master"
 	  }  
         }
 
