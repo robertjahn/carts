@@ -93,7 +93,7 @@ pipeline {
           withCredentials([file(credentialsId: 'GC_KEY', variable: 'GC_KEY')]) {
             sh "gcloud auth activate-service-account --key-file=${GC_KEY}"
             sh "gcloud container clusters get-credentials ${GC_CLUSTER} --zone ${GC_ZONE} --project ${GC_PROJECT}"
-            sh ./sockshop-utils/create_namespace.sh staging
+            sh "./sockshop-utils/create_namespace.sh stage"
             sh "kubectl apply -f sockshop-deploy/staging/carts.yml"
             sh "kubectl apply -f sockshop-deploy/staging/carts-svc.yml"
 
