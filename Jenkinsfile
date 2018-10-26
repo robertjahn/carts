@@ -99,8 +99,8 @@ pipeline {
 
             echo "waiting for the service to start..."
             sleep 180
-            sh "kubectl -n staging get pods"
-	    sh "kubectl -n staging get service"		  
+            sh "kubectl -n staging get pods -o wide"
+	    sh "kubectl -n staging get service -o wide"		  
           }
         }
       }
@@ -238,8 +238,8 @@ pipeline {
 
                     echo "waiting for the service to start..."
                     sleep 180
-                    sh "kubectl -n prod get pods"
-		    sh "kubectl -n prod get service"
+                    sh "kubectl -n prod get pods -o wide"
+		    sh "kubectl -n prod get service -o wide"
                 }
             }
         }
