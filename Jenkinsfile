@@ -65,6 +65,10 @@ pipeline {
       }
       steps {
         script {
+	    echo "REPOSITORY = ${env.REPOSITORY}"
+	    echo "TAG_STAGING = ${env.TAG_STAGING}"
+	    echo "TAG_PROD = ${env.TAG_PROD}"
+		
             def image
             image = docker.build("${env.REPOSITORY}:${env.TAG_STAGING}")
             docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
