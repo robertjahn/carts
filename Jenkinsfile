@@ -98,9 +98,8 @@ pipeline {
           withCredentials([file(credentialsId: 'GC_KEY', variable: 'GC_KEY')]) {
             sh("gcloud auth activate-service-account --key-file=${GC_KEY}")
             sh("gcloud container clusters get-credentials gke-demo --zone us-east1-b --project jjahn-demo-1")
-	    sh("gcloud compute instances list")
 	    sh '''
-              if [[ $(kubectl get namespace stage | wc -l) -eq 0 ]]; then
+              if [[ $(kubectl get namespace | grep -x stage | wc -l) -eq 0 ]]; then
 		 echo "Create namespace stage..."
 		 kubectl create namespace stage
 	      fi
