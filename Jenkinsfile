@@ -93,13 +93,13 @@ pipeline {
           withCredentials([file(credentialsId: 'GC_KEY', variable: 'GC_KEY')]) {
             sh "gcloud auth activate-service-account --key-file=${GC_KEY}"
             sh "gcloud container clusters get-credentials ${GC_CLUSTER} --zone ${GC_ZONE} --project ${GC_PROJECT}"
-            sh ./sockshop-utils/create_namespace.sh staging
-            sh kubectl apply -f sockshop-deploy/staging/carts.yml
-            sh kubectl apply -f sockshop-deploy/staging/carts-svc.yml
+            sh "./sockshop-utils/create_namespace.sh staging"
+            sh "kubectl apply -f sockshop-deploy/staging/carts.yml"
+            sh "kubectl apply -f sockshop-deploy/staging/carts-svc.yml"
 
             echo "waiting for the service to start..."
             sleep 180
-            sh kubectl get pods -n staging
+            sh "kubectl get pods -n staging"
           }
         }
       }
@@ -174,7 +174,7 @@ pipeline {
         }
         steps {
 	    replaceImageName("${env.REPOSITORY}:${env.TAG_STAGING}", "sockshop-deploy/staging/carts.yml")
-            sh "cd sockshop-deploy/ && git add --all && git commit -m 'Update carts image version to ${env.REPOSITORY}:${env.TAG_STAGING}'"
+            sh "cd sockshop-deploy/ && git add --all && git commit -m 'Update Staging carts image version to ${env.REPOSITORY}:${env.TAG_STAGING}'"
             sh 'cd sockshop-deploy/ && git push origin master'
         }
     }
@@ -207,8 +207,8 @@ pipeline {
         steps {
             replaceImageName("${env.REPOSITORY}:${env.TAG_PROD}", "sockshop-deploy/prod/carts.yml")
 
-            sh "cd sockshop-deploy/ && git add --all && git commit -m 'Update carts image version to ${env.REPOSITORY}:${env.TAG_PROD}'"
-            sh 'cd sockshop-deploy/ && git push origin master'
+            sh "cd sockshop-deploy/ && git add --all && git commit -m 'Update Production carts image version to ${env.REPOSITORY}:${env.TAG_PROD}'"
+            sh "cd sockshop-deploy/ && git push origin master"
         }
     }
 
@@ -232,12 +232,12 @@ pipeline {
                     sh "gcloud auth activate-service-account --key-file=${GC_KEY}"
                     sh "gcloud container clusters get-credentials ${GC_CLUSTER} --zone ${GC_ZONE} --project ${GC_PROJECT}"
                     sh ./sockshop-utils/create_namespace.sh prod
-                    sh kubectl apply -f sockshop-deploy/prod/carts.yml
-                    sh kubectl apply -f sockshop-deploy/prod/carts-svc.yml
+                    sh "kubectl apply -f sockshop-deploy/prod/carts.yml"
+                    sh "kubectl apply -f sockshop-deploy/prod/carts-svc.yml"
 
                     echo "waiting for the service to start..."
                     sleep 180
-                    sh kubectl get pods -n prod
+                    sh "kubectl get pods -n prod"
                 }
             }
         }
