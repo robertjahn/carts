@@ -9,6 +9,9 @@ pipeline {
     VERSION = readFile 'version'
     ARTIFACT_ID = "${env.APP_NAME}"
 
+    DT_SERVICE_TAGNAME = "ServiceName"
+    DT_SERVICE_TAGVALUE = "microservices-demo-front-end"
+
     //DockerHub public requires format of <account>/<repo>:<tag>
     //and does not support multiple forward slashes in the name, so must alter format
     REPOSITORY = "robjahn/${env.ARTIFACT_ID}"
@@ -30,6 +33,25 @@ pipeline {
     //TAG_DEV = "${env.TAG}-${env.VERSION}-${env.BUILD_NUMBER}"
     //TAG_STAGING = "${env.TAG}-${env.VERSION}"
   }	
+
+  stage('Checkout') {
+
+      // into a deployment subdirectory we checkout the kubectl deployment scripts
+      dir ('sockshop-deploy') {
+        git url: 'https://github.com/robertjahn/sockshop-deploy.git', branch: 'master'
+      }
+
+      // into a deployment subdirectory we checkout the kubectl deployment scripts
+      dir ('sockshop-utils') {
+        git url: 'https://github.com/robertjahn/sockshop-utils.git', branch: 'master'
+      }
+
+      // into a dynatrace-cli subdirectory we checkout the CLI
+      dir ('dynatrace-cli') {
+          git url: 'https://github.com/Dynatrace/dynatrace-cli.git', branch: 'master'
+      }
+  }
+
   stages {
     stage('Maven Build') {
       steps {
@@ -54,28 +76,38 @@ pipeline {
         }
       }
     }
-    stage('Deploy to dev namespace') {
+    stage('Deploy to stage namespace') {
       when {
         expression {
           return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
         }
       }
       steps {
-        //sh "sed -i 's#image: .*#image: ${env.REPOSITORY}:${env.TAG_DEV}#' manifest/carts.yml"
-	fileValueSubstitute("to-be-replaced-by-jenkins-hehe", "${env.REPOSITORY}:${env.TAG_DEV}", "manifest/carts.yml")      
+
+        def deploy_cmd = './sockshop-utils/dynatrace-scripts/pushdeployment.sh SERVICE CONTEXTLESS ' + DT_SERVICE_TAGNAME + ' ' + DT_SERVICE_TAGVALUE +
+           ' ${BUILD_TAG} ${BUILD_NUMBER} ${JOB_NAME} ${JENKINS_URL}' +
+           ' ${JOB_URL} ${BUILD_URL} ${GIT_COMMIT}'
+        echo deploy_cmd
+        sh deploy_cmd
+
+	    fileValueSubstitute("replace-the-image-name", "${env.REPOSITORY}:${env.TAG_DEV}", "sockshop-deploy/stage/carts.yml")
+
+        // Jenkins Credentials need to be configured with gcloud credentials
         withCredentials([file(credentialsId: 'GC_KEY', variable: 'GC_KEY')]) {
             sh("gcloud auth activate-service-account --key-file=${GC_KEY}")
             sh("gcloud container clusters get-credentials gke-demo --zone us-east1-b --project jjahn-demo-1")
-	    sh("gcloud compute instances list")
-	    sh '''
-		if [[ $(kubectl get namespace sock-shop | wc -l) -eq 0 ]]; then
-			echo "Create namespace dev..."
-			kubectl create namespace dev
-		fi
-	    '''
-  	    //sh("kubectl -n dev apply -f manifest/carts.yml")
-	    sh("kubectl get pods -n dev")
-	}
+	        sh("gcloud compute instances list")
+	        sh '''
+		       if [[ $(kubectl get namespace stage | wc -l) -eq 0 ]]; then
+			     echo "Create namespace stage..."
+			     kubectl create namespace stage
+		       fi
+	        '''
+  	        sh("kubectl apply -f sockshop-deploy/stage/carts.yml")
+  	        sh("kubectl apply -f sockshop-deploy/stage/carts-svc.yml")
+            sleep 10
+	        sh("kubectl get pods -n stage")
+	    }
       }
     }
     stage('Run health check in dev') {
@@ -112,6 +144,13 @@ pipeline {
         }
       }
       steps {
+
+        def start_test_cmd = './sockshop-utils/pushevent.sh SERVICE CONTEXTLESS '+ DT_SERVICE_TAGNAME + ' ' + DT_SERVICE_TAGVALUE +
+          ' "STARTING Load Test as part of Job: " ${JOB_NAME} Jenkins-Start-Test ' +
+          ' ${JOB_URL} ${BUILD_URL} ${GIT_COMMIT}'
+        echo start_test_cmd
+        sh start_test_cmd
+
         build job: "acm-workshop/jmeter-as-container",
           parameters: [
             string(name: 'BUILD_JMETER', value: 'no'),
@@ -125,6 +164,12 @@ pipeline {
             string(name: 'FUNC_VALIDATION', value: 'yes'),
             string(name: 'AVG_RT_VALIDATION', value: '0')
           ]
+
+        def end_test_cmd = './sockshop-utils/pushevent.sh SERVICE CONTEXTLESS '+ DT_SERVICE_TAGNAME + ' ' + DT_SERVICE_TAGVALUE +
+          ' "ENDING Load Test as part of Job: " ${JOB_NAME} Jenkins-End-Test ' +
+          ' ${JOB_URL} ${BUILD_URL} ${GIT_COMMIT}'
+        echo end_test_cmd
+        sh end_test_cmd
       }
     }
 	  
