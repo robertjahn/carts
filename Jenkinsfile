@@ -9,7 +9,7 @@ pipeline {
     // Assumes Jenkins Environment Variables set for GC_PROJECT, GC_CLUSTER, GC_ZONE, CART_SERVICE_IP
 
     APP_NAME = "cart"
-    VERSION = readFile 'version'
+    VERSION = readFile('version').trim()
     ARTIFACT_ID = "${env.APP_NAME}"
 
     DT_SERVICE_TAGNAME = "ServiceName"
@@ -31,7 +31,13 @@ pipeline {
 
     stage('Maven Build') {
       steps {
-	  echo "Building branch_name: ${env.BRANCH_NAME}"
+
+          echo "REPOSITORY = ${env.REPOSITORY}"
+          echo "TAG_STAGING = ${env.TAG_STAGING}"
+          echo "TAG_PROD = ${env.TAG_PROD}"
+          echo "SERVICE_URL = ${SERVICE_URL}"
+
+          echo "Building branch_name: ${env.BRANCH_NAME}"
           sh "mvn -B clean package -DskipTests"
       }
     }
@@ -65,10 +71,6 @@ pipeline {
       }
       steps {
         script {
-	    echo "REPOSITORY = ${env.REPOSITORY}"
-	    echo "TAG_STAGING = ${env.TAG_STAGING}"
-	    echo "TAG_PROD = ${env.TAG_PROD}"
-		
             def image
             image = docker.build("${env.REPOSITORY}:${env.TAG_STAGING}")
             docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
