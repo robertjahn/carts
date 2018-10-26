@@ -35,6 +35,14 @@ pipeline {
   }	
 
   stages {
+
+    stage('Maven Build') {
+      steps {
+	echo "Building branch_name: ${env.BRANCH_NAME}"
+        sh 'mvn -B clean package'
+      }
+    }
+
     stage('Checkout') {
       steps {
         // into a deployment subdirectory we checkout the kubectl deployment scripts
@@ -53,15 +61,7 @@ pipeline {
         }
       }
     }
-    stage('Maven Build') {
-      steps {
-        dir ('') {      
-	  echo "Building branch_name: ${env.BRANCH_NAME}"
-          sh 'mvn -B clean package'
-	}
-      }
-    }
-
+	  
     stage('Docker build and push to registry'){
       when {
         expression {
