@@ -173,7 +173,7 @@ pipeline {
         steps {
             fileValueSubstitute("replace-the-image-name", "${env.REPOSITORY}:${env.TAG_STAGING}", "sockshop-deploy/stage/carts.yml")
 
-            withCredentials([usernamePassword(credentialsId: 'git-credentials-acm', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+            withCredentials([usernamePassword(credentialsId: 'github', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
                 //sh "git config --global user.email ${env.GIT_USER_EMAIL}"
                 //sh "git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/dynatrace-sockshop/k8s-deploy-staging"
                 sh "cd sockshop-deploy/ && git add --all && git commit -m 'Update carts image version to ${env.REPOSITORY}:${env.TAG_STAGING}'"
