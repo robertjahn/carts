@@ -177,7 +177,7 @@ pipeline {
                 //sh "git config --global user.email ${env.GIT_USER_EMAIL}"
                 //sh "git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/dynatrace-sockshop/k8s-deploy-staging"
                 sh "cd sockshop-deploy/ && git add --all && git commit -m 'Update carts image version to ${env.REPOSITORY}:${env.TAG_STAGING}'"
-                sh 'cd sockshop-deploy/ && git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/dynatrace-sockshop/k8s-deploy-staging'
+                sh 'cd sockshop-deploy/ && git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/robertjahn/sockshop-deploy.git'
             }
         }
     }
