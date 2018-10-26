@@ -32,7 +32,7 @@ pipeline {
     stage('Maven Build') {
       steps {
 	echo "Building branch_name: ${env.BRANCH_NAME}"
-        //sh 'mvn -B clean package -DskipTests'
+        sh 'mvn -B clean package -DskipTests'
       }
     }
 
@@ -60,7 +60,7 @@ pipeline {
     stage('Docker build and push to registry'){
       when {
         expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'XXXmaster'
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
         }
       }
       steps {
@@ -129,7 +129,7 @@ pipeline {
       }
     }
 	  
-    stage('Run functional check in staging') {
+    stage('Run load test in staging') {
       when {
         expression {
           return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'XXXmaster'
@@ -173,24 +173,16 @@ pipeline {
             }
         }
         steps {
-            fileValueSubstitute("replace-the-image-name", "${env.REPOSITORY}:${env.TAG_STAGING}", "sockshop-deploy/staging/carts.yml")
-
-            withCredentials([usernamePassword(credentialsId: 'github', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
-                //sh "git config --global user.email ${env.GIT_USER_EMAIL}"
-		//sh "git config --global user.name 'Robert Jahn'" 
-		//sh "git commit --amend --reset-author"    
-                //sh "git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/dynatrace-sockshop/k8s-deploy-staging"
-                sh "cd sockshop-deploy/ && git add --all && git commit -m 'Update carts image version to ${env.REPOSITORY}:${env.TAG_STAGING}'"
-                sh 'cd sockshop-deploy/ && git push origin master'
-            }
+            sh "cd sockshop-deploy/ && git add --all && git commit -m 'Update carts image version to ${env.REPOSITORY}:${env.TAG_STAGING}'"
+            sh 'cd sockshop-deploy/ && git push origin master'
         }
     }
 
-    stage('Mark artifact for production namespace') {
+    stage('Mark and push artifact for production namespace') {
         when {
             expression {
 		        //return env.BRANCH_NAME ==~ 'release/.*'
-		        return env.BRANCH_NAME ==~ 'XXXmaster'
+		        return env.BRANCH_NAME ==~ 'master'
             }
         }
         steps {
@@ -202,25 +194,51 @@ pipeline {
                 }
             }
         }
-	  
-    //stage('Deploy to production') {
-      //when {
-      //  beforeAgent true
-      //  expression {
-      //    return env.BRANCH_NAME ==~ 'release/.*'
-      //  }
-      //}
-      //agent {
-      //  label 'git'
-      //}
-      //steps {
-        //withCredentials([usernamePassword(credentialsId: 'git-credentials-acm', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
-        //    sh "git config --global user.email ${env.GIT_USER_EMAIL}"
-        //    sh "git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/dynatrace-sockshop/k8s-deploy-staging"
-        //    sh "cd k8s-deploy-staging/ && sed -i 's#image: .*#image: ${env.TAG_STAGING}#' carts.yml"
-        //    sh "cd k8s-deploy-staging/ && git add carts.yml && git commit -m 'Update carts version ${env.VERSION}'"
-        //    sh 'cd k8s-deploy-staging/ && git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/dynatrace-sockshop/k8s-deploy-staging'
-        //}
-      //}
+
+    }
+
+    stage('Check in Production deployment change') {
+        when {
+            expression {
+                //return env.BRANCH_NAME ==~ 'release/.*'
+                return env.BRANCH_NAME ==~ 'master'
+            }
+        }
+        steps {
+            fileValueSubstitute("replace-the-image-name", "${env.REPOSITORY}:${env.TAG_PROD}", "sockshop-deploy/prod/carts.yml")
+
+            sh "cd sockshop-deploy/ && git add --all && git commit -m 'Update carts image version to ${env.REPOSITORY}:${env.TAG_PROD}'"
+            sh 'cd sockshop-deploy/ && git push origin master'
+        }
+    }
+    stage('Deploy to prod namespace') {
+        when {
+            expression {
+                //return env.BRANCH_NAME ==~ 'release/.*'
+                return env.BRANCH_NAME ==~ 'master'
+            }
+        }
+        steps {
+            script {
+                def deploy_cmd = './sockshop-utils/dynatrace-scripts/pushdeployment.sh SERVICE CONTEXTLESS ' + DT_SERVICE_TAGNAME + ' ' + DT_SERVICE_TAGVALUE +
+                        ' ${BUILD_TAG} ${BUILD_NUMBER} ${JOB_NAME} ${JENKINS_URL}' +
+                        ' ${JOB_URL} ${BUILD_URL} ${GIT_COMMIT}'
+                echo deploy_cmd
+                sh deploy_cmd
+
+                // Jenkins Credentials need to be configured with gcloud credentials
+                withCredentials([file(credentialsId: 'GC_KEY', variable: 'GC_KEY')]) {
+                    sh "gcloud auth activate-service-account --key-file=${GC_KEY}"
+                    sh "gcloud container clusters get-credentials ${GC_CLUSTER} --zone ${GC_ZONE} --project ${GC_PROJECT}"
+                    sh ./sockshop-utils/create_namespace.sh prod
+                    sh kubectl apply -f sockshop-deploy/prod/carts.yml
+                    sh kubectl apply -f sockshop-deploy/prod/carts-svc.yml
+
+                    echo "waiting for the service to start..."
+                    sleep 180
+                    sh kubectl get pods -n prod
+                }
+            }
+        }
     }
 }
