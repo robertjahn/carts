@@ -145,32 +145,33 @@ pipeline {
         }
       }
       steps {
+        script {
+          def start_test_cmd = './sockshop-utils/pushevent.sh SERVICE CONTEXTLESS '+ DT_SERVICE_TAGNAME + ' ' + DT_SERVICE_TAGVALUE +
+            ' "STARTING Load Test as part of Job: " ${JOB_NAME} Jenkins-Start-Test ' +
+            ' ${JOB_URL} ${BUILD_URL} ${GIT_COMMIT}'
+          echo start_test_cmd
+          sh start_test_cmd
 
-        def start_test_cmd = './sockshop-utils/pushevent.sh SERVICE CONTEXTLESS '+ DT_SERVICE_TAGNAME + ' ' + DT_SERVICE_TAGVALUE +
-          ' "STARTING Load Test as part of Job: " ${JOB_NAME} Jenkins-Start-Test ' +
-          ' ${JOB_URL} ${BUILD_URL} ${GIT_COMMIT}'
-        echo start_test_cmd
-        sh start_test_cmd
+          build job: "acm-workshop/jmeter-as-container",
+            parameters: [
+              string(name: 'BUILD_JMETER', value: 'no'),
+              string(name: 'SCRIPT_NAME', value: "${env.APP_NAME}_load.jmx"),
+              string(name: 'SERVER_URL', value: "${env.SERVICE_URL}"),
+              string(name: 'SERVER_PORT', value: '80'),
+              string(name: 'CHECK_PATH', value: '/health'),
+              string(name: 'VUCount', value: '1'),
+              string(name: 'LoopCount', value: '1'),
+              string(name: 'DT_LTN', value: "FuncCheck_${BUILD_NUMBER}"),
+              string(name: 'FUNC_VALIDATION', value: 'yes'),
+              string(name: 'AVG_RT_VALIDATION', value: '0')
+            ]
 
-        build job: "acm-workshop/jmeter-as-container",
-          parameters: [
-            string(name: 'BUILD_JMETER', value: 'no'),
-            string(name: 'SCRIPT_NAME', value: "${env.APP_NAME}_load.jmx"),
-            string(name: 'SERVER_URL', value: "${env.SERVICE_URL}"),
-            string(name: 'SERVER_PORT', value: '80'),
-            string(name: 'CHECK_PATH', value: '/health'),
-            string(name: 'VUCount', value: '1'),
-            string(name: 'LoopCount', value: '1'),
-            string(name: 'DT_LTN', value: "FuncCheck_${BUILD_NUMBER}"),
-            string(name: 'FUNC_VALIDATION', value: 'yes'),
-            string(name: 'AVG_RT_VALIDATION', value: '0')
-          ]
-
-        def end_test_cmd = './sockshop-utils/pushevent.sh SERVICE CONTEXTLESS '+ DT_SERVICE_TAGNAME + ' ' + DT_SERVICE_TAGVALUE +
-          ' "ENDING Load Test as part of Job: " ${JOB_NAME} Jenkins-End-Test ' +
-          ' ${JOB_URL} ${BUILD_URL} ${GIT_COMMIT}'
-        echo end_test_cmd
-        sh end_test_cmd
+          def end_test_cmd = './sockshop-utils/pushevent.sh SERVICE CONTEXTLESS '+ DT_SERVICE_TAGNAME + ' ' + DT_SERVICE_TAGVALUE +
+            ' "ENDING Load Test as part of Job: " ${JOB_NAME} Jenkins-End-Test ' +
+            ' ${JOB_URL} ${BUILD_URL} ${GIT_COMMIT}'
+          echo end_test_cmd
+          sh end_test_cmd
+	}
       }
     }
 	  
