@@ -1,5 +1,5 @@
-def fileValueSubstitute(find_this, replace_with, file) {
-   sh "sed -i.bak \"s|$find_this|$replace_with|g\" $file"
+def replaceImageName(new_image_name, file) {
+   sh "sed -i 's#image: .*#image: $new_image_name#' $file"
 }
 
 pipeline {
@@ -87,7 +87,7 @@ pipeline {
           echo deploy_cmd
           sh deploy_cmd
 
-          fileValueSubstitute("replace-the-image-name", "${env.REPOSITORY}:${env.TAG_STAGING}", "sockshop-deploy/staging/carts.yml")
+          replaceImageName("${env.REPOSITORY}:${env.TAG_STAGING}", "sockshop-deploy/staging/carts.yml")
 
           // Jenkins Credentials need to be configured with gcloud credentials
           withCredentials([file(credentialsId: 'GC_KEY', variable: 'GC_KEY')]) {
@@ -173,7 +173,7 @@ pipeline {
             }
         }
         steps {
-	    fileValueSubstitute("replace-the-image-name", "${env.REPOSITORY}:${env.TAG_STAGING}", "sockshop-deploy/staging/carts.yml")
+	    replaceImageName("${env.REPOSITORY}:${env.TAG_STAGING}", "sockshop-deploy/staging/carts.yml")
             sh "cd sockshop-deploy/ && git add --all && git commit -m 'Update carts image version to ${env.REPOSITORY}:${env.TAG_STAGING}'"
             sh 'cd sockshop-deploy/ && git push origin master'
         }
@@ -205,7 +205,7 @@ pipeline {
             }
         }
         steps {
-            fileValueSubstitute("replace-the-image-name", "${env.REPOSITORY}:${env.TAG_PROD}", "sockshop-deploy/prod/carts.yml")
+            replaceImageName("${env.REPOSITORY}:${env.TAG_PROD}", "sockshop-deploy/prod/carts.yml")
 
             sh "cd sockshop-deploy/ && git add --all && git commit -m 'Update carts image version to ${env.REPOSITORY}:${env.TAG_PROD}'"
             sh 'cd sockshop-deploy/ && git push origin master'
