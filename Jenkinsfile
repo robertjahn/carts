@@ -10,7 +10,7 @@ pipeline {
     ARTIFACT_ID = "${env.APP_NAME}"
 
     DT_SERVICE_TAGNAME = "ServiceName"
-    DT_SERVICE_TAGVALUE = "microservices-demo-front-end"
+    DT_SERVICE_TAGVALUE = "carts"
 
     //DockerHub public requires format of <account>/<repo>:<tag>
     //and does not support multiple forward slashes in the name, so must alter format
@@ -110,7 +110,7 @@ pipeline {
     stage('Run health check in dev') {
       when {
         expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'XXXmaster'
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
         }
       }
       steps {
