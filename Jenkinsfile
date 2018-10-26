@@ -73,7 +73,7 @@ pipeline {
         }
       }
     }
-    stage('Deploy to staging namespace') {
+    stage('Deploy to stage namespace') {
       when {
         expression {
           return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
@@ -99,13 +99,13 @@ pipeline {
 
             echo "waiting for the service to start..."
             sleep 180
-            sh "kubectl -n staging get pods -o wide"
-	    sh "kubectl -n staging get service -o wide"		  
+            sh "kubectl -n stage get pods -o wide"
+	    sh "kubectl -n stage get service -o wide"		  
           }
         }
       }
     }
-    stage('Run health check in staging') {
+    stage('Run health check in stage') {
       when {
         expression {
           return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
@@ -130,7 +130,7 @@ pipeline {
       }
     }
 	  
-    stage('Run load test in staging') {
+    stage('Run load test in stage') {
       when {
         expression {
           return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
@@ -167,7 +167,7 @@ pipeline {
       }
     }
 
-    stage('Check in Staging deployment change') {
+    stage('Check in Stage deployment change') {
         when {
             expression {
                 return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
