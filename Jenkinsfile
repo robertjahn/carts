@@ -55,7 +55,7 @@ pipeline {
     }
     stage('Maven Build') {
       steps {
-        dir () {      
+        dir ('') {      
 	  echo "Building branch_name: ${env.BRANCH_NAME}"
           sh 'mvn -B clean package'
 	}
