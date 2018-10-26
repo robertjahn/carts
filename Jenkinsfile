@@ -83,31 +83,32 @@ pipeline {
         }
       }
       steps {
+        script {
+          def deploy_cmd = './sockshop-utils/dynatrace-scripts/pushdeployment.sh SERVICE CONTEXTLESS ' + DT_SERVICE_TAGNAME + ' ' + DT_SERVICE_TAGVALUE +
+            ' ${BUILD_TAG} ${BUILD_NUMBER} ${JOB_NAME} ${JENKINS_URL}' +
+            ' ${JOB_URL} ${BUILD_URL} ${GIT_COMMIT}'
+          echo deploy_cmd
+          sh deploy_cmd
 
-        def deploy_cmd = './sockshop-utils/dynatrace-scripts/pushdeployment.sh SERVICE CONTEXTLESS ' + DT_SERVICE_TAGNAME + ' ' + DT_SERVICE_TAGVALUE +
-           ' ${BUILD_TAG} ${BUILD_NUMBER} ${JOB_NAME} ${JENKINS_URL}' +
-           ' ${JOB_URL} ${BUILD_URL} ${GIT_COMMIT}'
-        echo deploy_cmd
-        sh deploy_cmd
+	  fileValueSubstitute("replace-the-image-name", "${env.REPOSITORY}:${env.TAG_DEV}", "sockshop-deploy/stage/carts.yml")
 
-	    fileValueSubstitute("replace-the-image-name", "${env.REPOSITORY}:${env.TAG_DEV}", "sockshop-deploy/stage/carts.yml")
-
-        // Jenkins Credentials need to be configured with gcloud credentials
-        withCredentials([file(credentialsId: 'GC_KEY', variable: 'GC_KEY')]) {
+          // Jenkins Credentials need to be configured with gcloud credentials
+          withCredentials([file(credentialsId: 'GC_KEY', variable: 'GC_KEY')]) {
             sh("gcloud auth activate-service-account --key-file=${GC_KEY}")
             sh("gcloud container clusters get-credentials gke-demo --zone us-east1-b --project jjahn-demo-1")
-	        sh("gcloud compute instances list")
-	        sh '''
-		       if [[ $(kubectl get namespace stage | wc -l) -eq 0 ]]; then
-			     echo "Create namespace stage..."
-			     kubectl create namespace stage
-		       fi
-	        '''
-  	        sh("kubectl apply -f sockshop-deploy/stage/carts.yml")
-  	        sh("kubectl apply -f sockshop-deploy/stage/carts-svc.yml")
+	    sh("gcloud compute instances list")
+	    sh '''
+              if [[ $(kubectl get namespace stage | wc -l) -eq 0 ]]; then
+		 echo "Create namespace stage..."
+		 kubectl create namespace stage
+	      fi
+	    '''
+  	    sh("kubectl apply -f sockshop-deploy/stage/carts.yml")
+  	    sh("kubectl apply -f sockshop-deploy/stage/carts-svc.yml")
             sleep 10
-	        sh("kubectl get pods -n stage")
-	    }
+	    sh("kubectl get pods -n stage")
+	  }
+	}
       }
     }
     stage('Run health check in dev') {
