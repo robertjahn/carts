@@ -142,7 +142,7 @@ pipeline {
       }
       steps {
         script {
-          def start_test_cmd = './sockshop-utils/pushevent.sh SERVICE CONTEXTLESS '+ DT_SERVICE_TAGNAME + ' ' + DT_SERVICE_TAGVALUE +
+          def start_test_cmd = './sockshop-utils/dynatrace-scripts/pushevent.sh SERVICE CONTEXTLESS '+ DT_SERVICE_TAGNAME + ' ' + DT_SERVICE_TAGVALUE +
             ' "STARTING Load Test as part of Job: " ${JOB_NAME} Jenkins-Start-Test ' +
             ' ${JOB_URL} ${BUILD_URL} ${GIT_COMMIT}'
           echo start_test_cmd
@@ -162,7 +162,7 @@ pipeline {
               string(name: 'AVG_RT_VALIDATION', value: '0')
             ]
 
-          def end_test_cmd = './sockshop-utils/pushevent.sh SERVICE CONTEXTLESS '+ DT_SERVICE_TAGNAME + ' ' + DT_SERVICE_TAGVALUE +
+          def end_test_cmd = './sockshop-utils/dynatrace-scripts/pushevent.sh SERVICE CONTEXTLESS '+ DT_SERVICE_TAGNAME + ' ' + DT_SERVICE_TAGVALUE +
             ' "ENDING Load Test as part of Job: " ${JOB_NAME} Jenkins-End-Test ' +
             ' ${JOB_URL} ${BUILD_URL} ${GIT_COMMIT}'
           echo end_test_cmd
