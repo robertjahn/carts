@@ -32,7 +32,7 @@ pipeline {
     stage('Maven Build') {
       steps {
 	echo "Building branch_name: ${env.BRANCH_NAME}"
-        sh 'mvn -B clean package -DskipTests'
+        //sh 'mvn -B clean package -DskipTests'
       }
     }
 
@@ -85,7 +85,7 @@ pipeline {
           echo deploy_cmd
           sh deploy_cmd
 
-          fileValueSubstitute("replace-the-image-name", "${env.REPOSITORY}:${env.TAG_STAGING}", "sockshop-deploy/stage/carts.yml")
+          fileValueSubstitute("replace-the-image-name", "${env.REPOSITORY}:${env.TAG_STAGING}", "sockshop-deploy/staging/carts.yml")
 
           // Jenkins Credentials need to be configured with gcloud credentials
           withCredentials([file(credentialsId: 'GC_KEY', variable: 'GC_KEY')]) {
@@ -171,7 +171,7 @@ pipeline {
             }
         }
         steps {
-            fileValueSubstitute("replace-the-image-name", "${env.REPOSITORY}:${env.TAG_STAGING}", "sockshop-deploy/stage/carts.yml")
+            fileValueSubstitute("replace-the-image-name", "${env.REPOSITORY}:${env.TAG_STAGING}", "sockshop-deploy/staging/carts.yml")
 
             withCredentials([usernamePassword(credentialsId: 'github', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
                 //sh "git config --global user.email ${env.GIT_USER_EMAIL}"
