@@ -5,6 +5,9 @@ def fileValueSubstitute(find_this, replace_with, file) {
 pipeline {
   agent any
   environment {
+
+    // Assumes Jenkins Environment Variables set for GC_PROJECT, GC_CLUSTER, GC_ZONE, CART_SERVICE_IP
+
     APP_NAME = "cart"
     VERSION = readFile 'version'
     ARTIFACT_ID = "${env.APP_NAME}"
@@ -15,23 +18,13 @@ pipeline {
     //DockerHub public requires format of <account>/<repo>:<tag>
     //and does not support multiple forward slashes in the name, so must alter format
     REPOSITORY = "robjahn/${env.ARTIFACT_ID}"
-    TAG_DEV = "${env.VERSION}-SNAPHOT-${env.BUILD_NUMBER}"
-    TAG_STAGING = "${env.VERSION}"
+    TAG_STAGING = "${env.VERSION}-SNAPHOT-${env.BUILD_NUMBER}"
+    TAG_PROD = "${env.VERSION}"
 	  
     // hardcoded for now within Jenkins Global Properties since dont have a DNS.  
     // can later adjust logic use kubectl get service as an approach
     SERVICE_URL = "${CART_SERVICE_IP}"	   
-	  
-    // also need to figure out how to update or use DNS for the mongo DB defined here:
-    // https://github.com/robertjahn/carts/blob/master/src/main/resources/application.properties  
-    //	  spring.data.mongodb.uri=mongodb://10.55.247.203/data
-	  	  
-    //These are the original DT project values:
-    //string(name: 'SERVER_URL', value: "${env.APP_NAME}.dev"),	  
-    //ARTIFACT_ID = "sockshop/" + "${env.APP_NAME}"
-    //TAG = "${env.DOCKER_REGISTRY_URL}:5000/library/${env.ARTIFACT_ID}"
-    //TAG_DEV = "${env.TAG}-${env.VERSION}-${env.BUILD_NUMBER}"
-    //TAG_STAGING = "${env.TAG}-${env.VERSION}"
+
   }	
 
   stages {
@@ -65,23 +58,23 @@ pipeline {
     stage('Docker build and push to registry'){
       when {
         expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'XXXmaster'
         }
       }
       steps {
         script {
             def image
-            image = docker.build("${env.REPOSITORY}:${env.TAG_DEV}")
+            image = docker.build("${env.REPOSITORY}:${env.TAG_STAGING}")
             docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
                 image.push()
             }
         }
       }
     }
-    stage('Deploy to stage namespace') {
+    stage('Deploy to staging namespace') {
       when {
         expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'XXXmaster'
         }
       }
       steps {
@@ -92,30 +85,30 @@ pipeline {
           echo deploy_cmd
           sh deploy_cmd
 
-	  fileValueSubstitute("replace-the-image-name", "${env.REPOSITORY}:${env.TAG_DEV}", "sockshop-deploy/stage/carts.yml")
+          fileValueSubstitute("replace-the-image-name", "${env.REPOSITORY}:${env.TAG_STAGING}", "sockshop-deploy/stage/carts.yml")
 
           // Jenkins Credentials need to be configured with gcloud credentials
           withCredentials([file(credentialsId: 'GC_KEY', variable: 'GC_KEY')]) {
-            sh("gcloud auth activate-service-account --key-file=${GC_KEY}")
-            sh("gcloud container clusters get-credentials gke-demo --zone us-east1-b --project jjahn-demo-1")
-	    sh("./sockshop-utils/create_namespace.sh stage")
-  	    sh("kubectl apply -f sockshop-deploy/stage/carts.yml")
-  	    sh("kubectl apply -f sockshop-deploy/stage/carts-svc.yml")
-            sleep 10
-	    sh("kubectl get pods -n stage")
-	  }
-	}
+            sh "gcloud auth activate-service-account --key-file=${GC_KEY}"
+            sh "gcloud container clusters get-credentials ${GC_CLUSTER} --zone ${GC_ZONE} --project ${GC_PROJECT}"
+            sh ./sockshop-utils/create_namespace.sh staging
+            sh kubectl apply -f sockshop-deploy/staging/carts.yml
+            sh kubectl apply -f sockshop-deploy/staging/carts-svc.yml
+
+            echo "waiting for the service to start..."
+            sleep 180
+            sh kubectl get pods -n staging
+          }
+        }
       }
     }
-    stage('Run health check in stage') {
+    stage('Run health check in staging') {
       when {
         expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'XXXmaster'
         }
       }
       steps {
-        echo "waiting for the service to start..."
-        sleep 180
 
         build job: "acm-workshop/jmeter-as-container",
           parameters: [
@@ -134,10 +127,10 @@ pipeline {
       }
     }
 	  
-    stage('Run functional check in dev') {
+    stage('Run functional check in staging') {
       when {
         expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'XXXmaster'
         }
       }
       steps {
@@ -167,28 +160,46 @@ pipeline {
             ' ${JOB_URL} ${BUILD_URL} ${GIT_COMMIT}'
           echo end_test_cmd
           sh end_test_cmd
-	}
+        }
       }
     }
-	  
-    stage('Mark artifact for staging namespace') {
+
+    stage('Check in Staging deployment change') {
         when {
             expression {
-		//return env.BRANCH_NAME ==~ 'release/.*'    
-		return env.BRANCH_NAME ==~ 'master'
+                return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
             }
         }
         steps {
-	    script {
-                //now that passed tests, then tag the image just built and push with just the version tag
-		docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
-                    docker.image("${env.REPOSITORY}:${env.TAG_DEV}").push("${env.TAG_STAGING}")
-                }    
+            fileValueSubstitute("replace-the-image-name", "${env.REPOSITORY}:${env.TAG_STAGING}", "sockshop-deploy/stage/carts.yml")
+
+            withCredentials([usernamePassword(credentialsId: 'git-credentials-acm', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                //sh "git config --global user.email ${env.GIT_USER_EMAIL}"
+                //sh "git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/dynatrace-sockshop/k8s-deploy-staging"
+                sh "cd sockshop-deploy/ && git add --all && git commit -m 'Update carts image version to ${env.REPOSITORY}:${env.TAG_STAGING}'"
+                sh 'cd sockshop-deploy/ && git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/dynatrace-sockshop/k8s-deploy-staging'
             }
         }
     }
+
+    stage('Mark artifact for production namespace') {
+        when {
+            expression {
+		        //return env.BRANCH_NAME ==~ 'release/.*'
+		        return env.BRANCH_NAME ==~ 'XXXmaster'
+            }
+        }
+        steps {
+	        script {
+                //now that passed tests, then tag the image just built and push with just the version tag
+		        docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
+                    docker.image("${env.REPOSITORY}:${env.TAG_STAGING}").push("${env.TAG_PROD}")
+                    }
+                }
+            }
+        }
 	  
-    //stage('Deploy to staging') {
+    //stage('Deploy to production') {
       //when {
       //  beforeAgent true
       //  expression {
