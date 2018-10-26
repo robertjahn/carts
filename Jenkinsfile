@@ -173,6 +173,7 @@ pipeline {
             }
         }
         steps {
+	    fileValueSubstitute("replace-the-image-name", "${env.REPOSITORY}:${env.TAG_STAGING}", "sockshop-deploy/staging/carts.yml")
             sh "cd sockshop-deploy/ && git add --all && git commit -m 'Update carts image version to ${env.REPOSITORY}:${env.TAG_STAGING}'"
             sh 'cd sockshop-deploy/ && git push origin master'
         }
