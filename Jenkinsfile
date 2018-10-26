@@ -201,14 +201,14 @@ pipeline {
         when {
             expression {
                 //return env.BRANCH_NAME ==~ 'release/.*'
-                return env.BRANCH_NAME ==~ 'master'
+                return env.BRANCH_NAME ==~ 'XXXmaster'
             }
         }
         steps {
             replaceImageName("${env.REPOSITORY}:${env.TAG_PROD}", "sockshop-deploy/prod/carts.yml")
 
             sh "cd sockshop-deploy/ && git add --all && git commit -m 'Update Production carts image version to ${env.REPOSITORY}:${env.TAG_PROD}'"
-            //sh "cd sockshop-deploy/ && git push origin master"
+            sh "cd sockshop-deploy/ && git push origin master"
         }
     }
 
