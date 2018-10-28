@@ -74,7 +74,7 @@ pipeline {
       steps {
         script {
             def image
-	    if (env.BRANCH_NAME ==~ 'release/.*') {
+	    if (env.BRANCH_NAME ==~ 'release') {
 		echo "Buiding Production Docker image"
 	        image = docker.build("${env.REPOSITORY}:${env.TAG_PROD}")
 	    } else {
@@ -93,7 +93,7 @@ pipeline {
 	  def tag
 	  def subdirectory
 	  def namespace	
-          if (env.BRANCH_NAME ==~ 'release/.*') {
+          if (env.BRANCH_NAME ==~ 'release') {
 	     tag = "${env.TAG_PROD}"
              subdirectory = "prod"
 	     namespace = "${env.NAMESPACE_PROD}"
@@ -143,7 +143,7 @@ pipeline {
       steps {
         script {
 	  def url
-          if (env.BRANCH_NAME ==~ 'release/.*') {
+          if (env.BRANCH_NAME ==~ 'release') {
 	     url = "${env.SERVICE_URL_PROD}"
 	     echo "Running Production Health check against ${url}"
 	  } else {
@@ -173,7 +173,7 @@ pipeline {
       steps {
         script {
 	  def url
-          if (env.BRANCH_NAME ==~ 'release/.*') {
+          if (env.BRANCH_NAME ==~ 'release') {
 	     url = "${env.SERVICE_URL_PROD}"
 	     echo "Running Production Health check against ${url}"
 	  } else {
