@@ -25,6 +25,10 @@ pipeline {
     // can later adjust logic use kubectl get service as an approach
     SERVICE_URL_STAGING = "35.243.193.99"
     SERVICE_URL_PROD = "35.237.140.248"
+	  
+    // Namespaces
+    NAMESPACE_PROD = "prod"
+    NAMESPACE_STAGING = "stage"
   }	
 
   stages {
@@ -91,15 +95,15 @@ pipeline {
           if (env.BRANCH_NAME ==~ 'release/.*') {
 	     tag = "${env.TAG_PROD}"
              subdirectory = "prod"
-	     namespace = "prod"
+	     namespace = "${env.NAMESPACE_PROD}"
 	     echo "Deploying version ${tag} to Production"
 	  } else {
 	     tag = "${env.TAG_STAGING}"
              subdirectory = "staging"
-	     namespace = "stage"
-	     echo "Deploying version ${tag} to Production"
+	     namespace = "${env.NAMESPACE_STAGING}"
+	     echo "Deploying version ${tag} to Staging"
 	  }
-          replaceImageName("${env.REPOSITORY}:${env.TAG_PROD}", "sockshop-deploy/${subdirectory}/carts.yml")
+          replaceImageName("${env.REPOSITORY}:${tag}", "sockshop-deploy/${subdirectory}/carts.yml")
 
           // Jenkins Credentials need to be configured with gcloud credentials
           withCredentials([file(credentialsId: 'GC_KEY', variable: 'GC_KEY')]) {
@@ -126,34 +130,34 @@ pipeline {
             ' ${JOB_URL} ${BUILD_URL} ${GIT_COMMIT}'
           echo deploy_cmd
           sh deploy_cmd
-		
-          error("Force fail for testing")
-
         }
       }
     }
-    stage('Run health check in stage') {
-      when {
-        expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
-        }
-      }
+    stage('Run health check') {
       steps {
-
-        build job: "acm-workshop/jmeter-as-container",
-          parameters: [
-            string(name: 'BUILD_JMETER', value: 'no'),
-            string(name: 'SCRIPT_NAME', value: 'basiccheck.jmx'),
-            string(name: 'SERVER_URL', value: "${env.SERVICE_URL}"),
-            string(name: 'SERVER_PORT', value: '80'),
-            string(name: 'CHECK_PATH', value: '/health'),
-            string(name: 'VUCount', value: '1'),
-            string(name: 'LoopCount', value: '1'),
-            string(name: 'DT_LTN', value: "HealthCheck_${BUILD_NUMBER}"),
-            string(name: 'FUNC_VALIDATION', value: 'yes'),
-            string(name: 'AVG_RT_VALIDATION', value: '0'),
-            string(name: 'RETRY_ON_ERROR', value: 'yes')
-          ]
+	  def url
+          if (env.BRANCH_NAME ==~ 'release/.*') {
+	     url = "${env.SERVICE_URL_PROD}"
+	     echo "Running Production Health check against ${url}"
+	  } else {
+	     url = "${env.SERVICE_URL_STAGING}"
+	     echo "Running Staging Health check against ${url}"
+	  }
+          build job: "acm-workshop/jmeter-as-container",
+            parameters: [
+              string(name: 'BUILD_JMETER', value: 'no'),
+              string(name: 'SCRIPT_NAME', value: 'basiccheck.jmx'),
+              string(name: 'SERVER_URL', value: "${url}"),
+              string(name: 'SERVER_PORT', value: '80'),
+              string(name: 'CHECK_PATH', value: '/health'),
+              string(name: 'VUCount', value: '1'),
+              string(name: 'LoopCount', value: '1'),
+              string(name: 'DT_LTN', value: "HealthCheck_${BUILD_NUMBER}"),
+              string(name: 'FUNC_VALIDATION', value: 'yes'),
+              string(name: 'AVG_RT_VALIDATION', value: '0'),
+              string(name: 'RETRY_ON_ERROR', value: 'yes')
+            ]      
+          error("Force fail for testing")
       }
     }
 	  
