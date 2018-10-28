@@ -23,7 +23,8 @@ pipeline {
 	  
     // hardcoded for now 
     // can later adjust logic use kubectl get service as an approach
-    SERVICE_URL = "35.243.193.99"
+    SERVICE_URL_STAGING = "35.243.193.99"
+    SERVICE_URL_PROD = "35.237.140.248"
   }	
 
   stages {
@@ -34,7 +35,8 @@ pipeline {
           echo "REPOSITORY = ${env.REPOSITORY}"
           echo "TAG_STAGING = ${env.TAG_STAGING}"
           echo "TAG_PROD = ${env.TAG_PROD}"
-          echo "SERVICE_URL = ${SERVICE_URL}"
+          echo "SERVICE_URL_STAGING = ${SERVICE_URL_STAGING}"
+          echo "SERVICE_URL_PROD = ${SERVICE_URL_PROD}"
 
           echo "Building branch_name: ${env.BRANCH_NAME}"
           sh "mvn -B clean package -DskipTests"
@@ -44,18 +46,19 @@ pipeline {
     stage('Checkout') {
       steps {
         // into a deployment subdirectory we checkout the kubectl deployment scripts
+        // we need to commit back so checkout with credentials
         dir ('sockshop-deploy') {
           withCredentials([usernamePassword(credentialsId: 'github', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
             git url: "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/robertjahn/sockshop-deploy.git", branch: "master"
 	      }
         }
 
-        // into a deployment subdirectory we checkout the utility scripts
+        // into a deployment subdirectory we copy the utility scripts
         dir ('sockshop-utils') {
           git url: 'https://github.com/robertjahn/sockshop-utils.git', branch: 'master'
         }
 
-        // into a dynatrace-cli subdirectory we checkout the Dynatrace CLI
+        // into a dynatrace-cli subdirectory we copy the Dynatrace CLI
         dir ('dynatrace-cli') {
           git url: 'https://github.com/Dynatrace/dynatrace-cli.git', branch: 'master'
         }
@@ -63,18 +66,20 @@ pipeline {
     }
 	  
     stage('Docker build and push to registry'){
-      when {
-        expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
-        }
-      }
       steps {
         script {
             def image
-            image = docker.build("${env.REPOSITORY}:${env.TAG_STAGING}")
+	    if (env.BRANCH_NAME ==~ 'release/.*') {
+		echo "Buiding Production Docker image"
+	        image = docker.build("${env.REPOSITORY}:${env.TAG_PROD}")
+	    } else {
+		echo "Buiding Staging Docker image"
+	        image = docker.build("${env.REPOSITORY}:${env.TAG_STAGING}")
+	    }
             docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
                 image.push()
             }
+	    error("Force fail for testing")
         }
       }
     }
