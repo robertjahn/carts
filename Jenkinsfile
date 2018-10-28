@@ -129,10 +129,11 @@ pipeline {
 	  // ENTITYTYPE TAGCONTEXT TAGNAME TAGVALUE 
 	  // DEPLOYMENTNAME DEPLOYMENTVERSION DEPLOYMENTPROJECT SOURCE CILINK 
           // JENKINSURL BUILDURL GITCOMMIT
+	  // https://wiki.jenkins.io/display/JENKINS/Building+a+software+project	
           def deploy_cmd = './sockshop-utils/dynatrace-scripts/pushdeployment.sh ' +
 	    ' SERVICE CONTEXTLESS ' + DT_SERVICE_TAGNAME + ' ' + DT_SERVICE_TAGVALUE +
-	    ' ${BUILD_TAG} ${tag} ${JOB_NAME} ${GIT_URL} ${JENKINS_URL}' +
-	    ' ${JOB_URL} ${BUILD_URL} ${GIT_COMMIT}'
+	    ' ${BUILD_TAG} ${tag} ${JOB_NAME} ${GIT_URL} ${BUILD_URL}' +
+	    ' ${JENKINS_URL} ${BUILD_URL} ${GIT_COMMIT}'
           echo deploy_cmd
           sh deploy_cmd
         }
