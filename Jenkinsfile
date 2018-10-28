@@ -132,8 +132,8 @@ pipeline {
 	  // https://wiki.jenkins.io/display/JENKINS/Building+a+software+project	
           def deploy_cmd = './sockshop-utils/dynatrace-scripts/pushdeployment.sh ' +
 	    ' SERVICE CONTEXTLESS ' + DT_SERVICE_TAGNAME + ' ' + DT_SERVICE_TAGVALUE +
-	    ' ${BUILD_TAG} ' + tag + ' ' + tag + ' ${GIT_URL} ${BUILD_URL}' +
-	    ' ${JENKINS_URL} ${BUILD_URL} ${GIT_COMMIT}'
+	    ' ${BUILD_TAG} ' + tag + ' sock-shop ${GIT_URL} none ' +
+	    ' ${JENKINS_URL} ${GIT_BRANCH} ${GIT_COMMIT}'
           echo deploy_cmd
           sh deploy_cmd
         }
