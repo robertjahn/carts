@@ -135,6 +135,7 @@ pipeline {
     }
     stage('Run health check') {
       steps {
+        script {
 	  def url
           if (env.BRANCH_NAME ==~ 'release/.*') {
 	     url = "${env.SERVICE_URL_PROD}"
@@ -158,6 +159,7 @@ pipeline {
               string(name: 'RETRY_ON_ERROR', value: 'yes')
             ]      
           error("Force fail for testing")
+	}
       }
     }
 	  
