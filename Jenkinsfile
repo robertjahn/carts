@@ -21,10 +21,9 @@ pipeline {
     TAG_STAGING = "${env.VERSION}-SNAPHOT-${env.BUILD_NUMBER}"
     TAG_PROD = "${env.VERSION}"
 	  
-    // hardcoded for now within Jenkins Global Properties since dont have a DNS.  
+    // hardcoded for now 
     // can later adjust logic use kubectl get service as an approach
-    SERVICE_URL = "${CART_SERVICE_IP}"	   
-
+    SERVICE_URL = 35.243.193.99
   }	
 
   stages {
@@ -181,8 +180,15 @@ pipeline {
         }
         steps {
 	    replaceImageName("${env.REPOSITORY}:${env.TAG_STAGING}", "sockshop-deploy/staging/carts.yml")
-            sh "cd sockshop-deploy/ && git add --all && git commit -m 'Update Staging carts image version to ${env.REPOSITORY}:${env.TAG_STAGING}'"
-            sh 'cd sockshop-deploy/ && git push origin master'
+	    sh """
+	    cd sockshop-deploy
+	    if git status --porcelain | wc -l | grep -v -q '0'; then
+	       git add --all && git commit -m 'Update Staging carts image version to ${env.REPOSITORY}:${env.TAG_STAGING}'
+	       git push origin master
+	    fi
+	    """
+            //sh "cd sockshop-deploy/ && git add --all && git commit -m 'Update Staging carts image version to ${env.REPOSITORY}:${env.TAG_STAGING}'"
+            //sh 'cd sockshop-deploy/ && git push origin master'
         }
     }
 
@@ -213,9 +219,15 @@ pipeline {
         }
         steps {
             replaceImageName("${env.REPOSITORY}:${env.TAG_PROD}", "sockshop-deploy/prod/carts.yml")
-
-            sh "cd sockshop-deploy/ && git add --all && git commit -m 'Update Production carts image version to ${env.REPOSITORY}:${env.TAG_PROD}'"
-            sh "cd sockshop-deploy/ && git push origin master"
+	    sh """
+	    cd sockshop-deploy
+	    if git status --porcelain | wc -l | grep -v -q '0'; then
+	       git add --all && git commit -m 'Update Staging carts image version to ${env.REPOSITORY}:${env.TAG_PROD}'
+	       git push origin master
+	    fi
+	    """
+            //sh "cd sockshop-deploy/ && git add --all && git commit -m 'Update Production carts image version to ${env.REPOSITORY}:${env.TAG_PROD}'"
+            //sh "cd sockshop-deploy/ && git push origin master"
         }
     }
 
