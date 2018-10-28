@@ -23,7 +23,7 @@ pipeline {
 	  
     // hardcoded for now 
     // can later adjust logic use kubectl get service as an approach
-    SERVICE_URL = 35.243.193.99
+    SERVICE_URL = "35.243.193.99"
   }	
 
   stages {
