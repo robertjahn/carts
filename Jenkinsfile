@@ -125,10 +125,14 @@ pipeline {
             sh "kubectl -n ${namespace} get service -o wide"		  
           }
 		
-	  // push the dynatrace deployment event		
-          def deploy_cmd = './sockshop-utils/dynatrace-scripts/pushdeployment.sh SERVICE CONTEXTLESS ' + DT_SERVICE_TAGNAME + ' ' + DT_SERVICE_TAGVALUE +
-            ' ${BUILD_TAG} ${BUILD_NUMBER} ${JOB_NAME} ${JENKINS_URL}' +
-            ' ${JOB_URL} ${BUILD_URL} ${GIT_COMMIT}'
+	  // push the dynatrace deployment event
+	  // ENTITYTYPE TAGCONTEXT TAGNAME TAGVALUE 
+	  // DEPLOYMENTNAME DEPLOYMENTVERSION DEPLOYMENTPROJECT SOURCE CILINK 
+          // JENKINSURL BUILDURL GITCOMMIT
+          def deploy_cmd = './sockshop-utils/dynatrace-scripts/pushdeployment.sh ' +
+	    ' SERVICE CONTEXTLESS ' + DT_SERVICE_TAGNAME + ' ' + DT_SERVICE_TAGVALUE +
+	    ' ${BUILD_TAG} ${tag} ${JOB_NAME} ${GIT_URL} ${JENKINS_URL}' +
+	    ' ${JOB_URL} ${BUILD_URL} ${GIT_COMMIT}'
           echo deploy_cmd
           sh deploy_cmd
         }
