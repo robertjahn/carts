@@ -79,39 +79,56 @@ pipeline {
             docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
                 image.push()
             }
-	    error("Force fail for testing")
-        }
+	}
       }
     }
-    stage('Deploy to stage namespace') {
-      when {
-        expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
-        }
-      }
+    stage('Deploy') {
       steps {
         script {
+	  def tag
+	  def subdirectory
+	  def namespace	
+          if (env.BRANCH_NAME ==~ 'release/.*') {
+	     tag = "${env.TAG_PROD}"
+             subdirectory = "prod"
+	     namespace = "prod"
+	     echo "Deploying version ${tag} to Production"
+	  } else {
+	     tag = "${env.TAG_STAGING}"
+             subdirectory = "staging"
+	     namespace = "stage"
+	     echo "Deploying version ${tag} to Production"
+	  }
+          replaceImageName("${env.REPOSITORY}:${env.TAG_PROD}", "sockshop-deploy/${subdirectory}/carts.yml")
+
+          // Jenkins Credentials need to be configured with gcloud credentials
+          withCredentials([file(credentialsId: 'GC_KEY', variable: 'GC_KEY')]) {
+	    // get the required cluster creds
+            sh "gcloud auth activate-service-account --key-file=${GC_KEY}"
+            sh "gcloud container clusters get-credentials ${GC_CLUSTER} --zone ${GC_ZONE} --project ${GC_PROJECT}"
+	
+	    // create namespace it its not there	  
+            sh "./sockshop-utils/create_namespace.sh ${namespace}"
+		 
+            // do the deployment
+            sh "kubectl apply -f sockshop-deploy/${subdirectory}/carts.yml"
+            sh "kubectl apply -f sockshop-deploy/${subdirectory}/carts-svc.yml"
+
+            echo "waiting for the service to start..."
+            sleep 180
+            sh "kubectl -n ${namespace} get pods -o wide"
+            sh "kubectl -n ${namespace} get service -o wide"		  
+          }
+		
+	  // push the dynatrace deployment event		
           def deploy_cmd = './sockshop-utils/dynatrace-scripts/pushdeployment.sh SERVICE CONTEXTLESS ' + DT_SERVICE_TAGNAME + ' ' + DT_SERVICE_TAGVALUE +
             ' ${BUILD_TAG} ${BUILD_NUMBER} ${JOB_NAME} ${JENKINS_URL}' +
             ' ${JOB_URL} ${BUILD_URL} ${GIT_COMMIT}'
           echo deploy_cmd
           sh deploy_cmd
+		
+          error("Force fail for testing")
 
-          replaceImageName("${env.REPOSITORY}:${env.TAG_STAGING}", "sockshop-deploy/staging/carts.yml")
-
-          // Jenkins Credentials need to be configured with gcloud credentials
-          withCredentials([file(credentialsId: 'GC_KEY', variable: 'GC_KEY')]) {
-            sh "gcloud auth activate-service-account --key-file=${GC_KEY}"
-            sh "gcloud container clusters get-credentials ${GC_CLUSTER} --zone ${GC_ZONE} --project ${GC_PROJECT}"
-            sh "./sockshop-utils/create_namespace.sh stage"
-            sh "kubectl apply -f sockshop-deploy/staging/carts.yml"
-            sh "kubectl apply -f sockshop-deploy/staging/carts-svc.yml"
-
-            echo "waiting for the service to start..."
-            sleep 180
-            sh "kubectl -n stage get pods -o wide"
-	    sh "kubectl -n stage get service -o wide"		  
-          }
         }
       }
     }
