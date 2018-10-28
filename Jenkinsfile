@@ -74,8 +74,7 @@ pipeline {
       steps {
         script {
             def image
-	    echo "Branch Name -->${env.BRANCH_NAME}<--"	
-	    switch (env.BRANCH_NAME.trim()) {
+	    switch (env.BRANCH_NAME) {
               case 'master': 
                 echo "Buiding Staging Docker image"
 	        image = docker.build("${env.REPOSITORY}:${env.TAG_STAGING}")
