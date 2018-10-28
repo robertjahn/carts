@@ -33,7 +33,7 @@ pipeline {
 
   stages {
 
-    stage('Maven Build') {
+    stage('Build') {
       steps {
           echo "*************************************************************"
           echo "REPOSITORY = ${env.REPOSITORY}"
@@ -169,7 +169,7 @@ pipeline {
       }
     }
 	  
-    stage('Run load test in stage') {
+    stage('Run load test') {
       steps {
         script {
 	  def url
