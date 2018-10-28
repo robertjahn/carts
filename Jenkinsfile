@@ -74,13 +74,18 @@ pipeline {
       steps {
         script {
             def image
-		if ("${env.BRANCH_NAME}" == "release") {
-		echo "Buiding Production Docker image"
-	        image = docker.build("${env.REPOSITORY}:${env.TAG_PROD}")
-	    } else {
-		echo "Buiding Staging Docker image"
+	    switch (env.BRANCH_NAME) {
+              case 'master': 
+                echo "Buiding Staging Docker image"
 	        image = docker.build("${env.REPOSITORY}:${env.TAG_STAGING}")
-	    }
+                break
+              case 'release':
+	        echo "Buiding Production Docker image"
+	        image = docker.build("${env.REPOSITORY}:${env.TAG_PROD}")
+                break
+              default: 
+	        error "Only support master and release branches"
+              } 	
             docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
                 image.push()
             }
