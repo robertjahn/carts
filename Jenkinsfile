@@ -52,9 +52,10 @@ pipeline {
       steps {
         // into a deployment subdirectory we checkout the kubectl deployment scripts
         // we need to commit back so checkout with credentials
+	// sock-shop deploy repo only has a master branch with 2 subfolders by environment
         dir ('sockshop-deploy') {
           withCredentials([usernamePassword(credentialsId: 'github', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
-            git url: "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/robertjahn/sockshop-deploy.git", branch: "${env.BRANCH_NAME}"
+            git url: "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/robertjahn/sockshop-deploy.git", branch: 'master'
 	      }
         }
 
@@ -164,7 +165,7 @@ pipeline {
 	    cd sockshop-deploy
 	    if git status --porcelain | wc -l | grep -v -q '0'; then
 	       git add --all && git commit -m 'Update ${env.BRANCH_NAME} carts image version to ${env.REPOSITORY}:${tag}'
-	       git push origin ${env.BRANCH_NAME}
+	       git push origin master
 	  fi
 	  """
         }
