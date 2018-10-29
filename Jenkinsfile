@@ -239,8 +239,22 @@ pipeline {
           sh end_test_cmd
         }
       }
-	    
-  
+    }
+	  
+    stage('ValidateProduction') {
+      steps {
+        script {
+          // See if DT found any problems
+          DYNATRACE_PROBLEM_COUNT = sh (script: './sockshop-utils/dynatrace-scripts/checkforproblems.sh', returnStatus : true)
+          echo "Dynatrace Problems Found: ${DYNATRACE_PROBLEM_COUNT}"
+       
+          // now lets generate a report using our CLI and lets generate some direct links back to dynatrace
+          //sh 'python3 dtcli.py dqlr srv tags/CONTEXTLESS:DockerService=SampleNodeJsProduction '+
+          //   'service.responsetime[avg%hour],service.responsetime[p90%hour] ${DT_URL} ${DT_TOKEN}'
+          //sh 'mv dqlreport.html dqlproductionreport.html'
+          //archiveArtifacts artifacts: 'dqlproductionreport.html', fingerprint: true
+	}
+      }
     }
   }
 }
