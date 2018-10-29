@@ -135,7 +135,7 @@ pipeline {
 	  // push the dynatrace deployment event
 	  // ENTITYTYPE TAGCONTEXT TAGNAME TAGVALUE 
 	  // DEPLOYMENTNAME DEPLOYMENTVERSION DEPLOYMENTPROJECT SOURCE CILINK 
-          // JENKINSURL BUILDURL GITCOMMIT
+          // JENKINSURL GITBRANCH GITCOMMIT
 	  // https://wiki.jenkins.io/display/JENKINS/Building+a+software+project	
           def deploy_cmd = './sockshop-utils/dynatrace-scripts/pushdeployment.sh ' +
 	    ' SERVICE CONTEXTLESS ' + DT_SERVICE_TAGNAME + ' ' + DT_SERVICE_TAGVALUE +
