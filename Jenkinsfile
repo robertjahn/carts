@@ -123,11 +123,11 @@ pipeline {
             sh "./sockshop-utils/create_namespace.sh ${namespace}"
 		 
             // do the deployment
-            sh "kubectl apply -f sockshop-deploy/${subdirectory}/carts.yml"
-            sh "kubectl apply -f sockshop-deploy/${subdirectory}/carts-svc.yml"
+            //sh "kubectl apply -f sockshop-deploy/${subdirectory}/carts.yml"
+            //sh "kubectl apply -f sockshop-deploy/${subdirectory}/carts-svc.yml"
 
             echo "waiting for the service to start..."
-            sleep 180
+            //sleep 180
             sh "kubectl -n ${namespace} get pods -o wide"
             sh "kubectl -n ${namespace} get service -o wide"		  
           }
@@ -155,7 +155,7 @@ pipeline {
 	     subdirectory = "prod"
 	     echo "Check in production image name change to ${tag}"
 	  } else {
-	     url = "${env.TAG_STAGING}"
+	     tag = "${env.TAG_STAGING}"
 	     subdirectory = "staging"
 	     echo "Check in staging image name change to ${tag}"
 	  }
