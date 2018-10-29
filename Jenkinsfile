@@ -12,8 +12,8 @@ pipeline {
     VERSION = readFile('version').trim()
     ARTIFACT_ID = "${env.APP_NAME}"
 
-    DT_SERVICE_TAGNAME = "ServiceName"
-    DT_SERVICE_TAGVALUE = "carts"
+    DT_SERVICE_TAGNAME = "Sockshop"
+    DT_SERVICE_TAGVALUE = ""
 
     //DockerHub public requires format of <account>/<repo>:<tag>
     //and does not support multiple forward slashes in the name, so must alter format
@@ -75,11 +75,13 @@ pipeline {
         script {
             def image
 	    switch (env.BRANCH_NAME) {
-              case 'master': 
+              case 'master':
+		DT_SERVICE_TAGVALUE = "prod-carts"
                 echo "Buiding Staging Docker image"
 	        image = docker.build("${env.REPOSITORY}:${env.TAG_STAGING}")
                 break
               case 'release':
+		DT_SERVICE_TAGVALUE = "stage-carts"
 	        echo "Buiding Production Docker image"
 	        image = docker.build("${env.REPOSITORY}:${env.TAG_PROD}")
                 break
