@@ -163,8 +163,8 @@ pipeline {
 	  sh """
 	    cd sockshop-deploy
 	    if git status --porcelain | wc -l | grep -v -q '0'; then
-	       git add --all && git commit -m 'Update Staging carts image version to ${env.REPOSITORY}:${tag}'
-	       git push origin master
+	       git add --all && git commit -m 'Update ${env.BRANCH_NAME} carts image version to ${env.REPOSITORY}:${tag}'
+	       git push origin ${env.BRANCH_NAME}
 	  fi
 	  """
         }
