@@ -76,12 +76,12 @@ pipeline {
             def image
 	    switch (env.BRANCH_NAME) {
               case 'master':
-		DT_SERVICE_TAGVALUE = "prod-carts"
+		DT_SERVICE_TAGVALUE = "stage-carts"
                 echo "Buiding Staging Docker image"
 	        image = docker.build("${env.REPOSITORY}:${env.TAG_STAGING}")
                 break
               case 'release':
-		DT_SERVICE_TAGVALUE = "stage-carts"
+		DT_SERVICE_TAGVALUE = "prod-carts"
 	        echo "Buiding Production Docker image"
 	        image = docker.build("${env.REPOSITORY}:${env.TAG_PROD}")
                 break
