@@ -148,7 +148,8 @@ pipeline {
     }
 	  
     stage('Check in deployment change') {
-        steps {
+      steps {
+	script {	
           if ("${env.BRANCH_NAME}" == "release") {
 	     tag = "${env.TAG_PROD}"
 	     subdirectory = "prod"
@@ -167,6 +168,7 @@ pipeline {
 	  fi
 	  """
         }
+      }
     }
 	  
     stage('Run health check') {
