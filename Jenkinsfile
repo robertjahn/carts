@@ -146,6 +146,29 @@ pipeline {
         }
       }
     }
+	  
+    stage('Check in deployment change') {
+        steps {
+          if ("${env.BRANCH_NAME}" == "release") {
+	     tag = "${env.TAG_PROD}"
+	     subdirectory = "prod"
+	     echo "Check in production image name change to ${tag}"
+	  } else {
+	     url = "${env.TAG_STAGING}"
+	     subdirectory = "staging"
+	     echo "Check in staging image name change to ${tag}"
+	  }
+	  replaceImageName("${env.REPOSITORY}:${tag}", "sockshop-deploy/${subdirectory}/carts.yml")
+	  sh """
+	    cd sockshop-deploy
+	    if git status --porcelain | wc -l | grep -v -q '0'; then
+	       git add --all && git commit -m 'Update Staging carts image version to ${env.REPOSITORY}:${tag}'
+	       git push origin master
+	  fi
+	  """
+        }
+    }
+	  
     stage('Run health check') {
       steps {
         script {
