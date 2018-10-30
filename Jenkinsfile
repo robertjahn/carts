@@ -241,5 +241,15 @@ pipeline {
         }
       }
     }
+	  
+    stage('ValidateProduction') {
+      steps {
+        script {
+          // See if DT found any problems
+          DYNATRACE_PROBLEM_COUNT = sh (script: './sockshop-utils/dynatrace-scripts/checkforproblems.sh', returnStatus : true)
+          echo "Dynatrace Problems Found: ${DYNATRACE_PROBLEM_COUNT}"
+	}
+      }
+    }
   }
 }
