@@ -225,8 +225,8 @@ pipeline {
               string(name: 'SERVER_URL', value: "${url}"),
               string(name: 'SERVER_PORT', value: '80'),
               string(name: 'CHECK_PATH', value: '/health'),
-              string(name: 'VUCount', value: '1'),
-              string(name: 'LoopCount', value: '1'),
+              string(name: 'VUCount', value: '5'),
+              string(name: 'LoopCount', value: '100'),
               string(name: 'DT_LTN', value: "FuncCheck_${BUILD_NUMBER}"),
               string(name: 'FUNC_VALIDATION', value: 'yes'),
               string(name: 'AVG_RT_VALIDATION', value: '0')
