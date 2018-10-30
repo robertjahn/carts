@@ -44,7 +44,7 @@ pipeline {
 	  echo "*************************************************************"    
 
           echo "Building branch_name: ${env.BRANCH_NAME}"
-          sh "mvn -B clean package -DskipTests"
+          //sh "mvn -B clean package -DskipTests"
       }
     }
 
@@ -89,7 +89,7 @@ pipeline {
 	        error "Only support master and release branches"
               } 	
             docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
-                image.push()
+                //image.push()
             }
 	}
       }
@@ -123,11 +123,11 @@ pipeline {
             sh "./sockshop-utils/create_namespace.sh ${namespace}"
 		 
             // do the deployment
-            sh "kubectl apply -f sockshop-deploy/${subdirectory}/carts.yml"
-            sh "kubectl apply -f sockshop-deploy/${subdirectory}/carts-svc.yml"
+            //sh "kubectl apply -f sockshop-deploy/${subdirectory}/carts.yml"
+            //sh "kubectl apply -f sockshop-deploy/${subdirectory}/carts-svc.yml"
 
             echo "waiting for the service to start..."
-            sleep 180
+            //sleep 180
             sh "kubectl -n ${namespace} get pods -o wide"
             sh "kubectl -n ${namespace} get service -o wide"		  
           }
@@ -190,7 +190,7 @@ pipeline {
               string(name: 'SERVER_PORT', value: '80'),
               string(name: 'CHECK_PATH', value: '/health'),
               string(name: 'VU_COUNT', value: '1'),
-              string(name: 'LOOP_COUNT', value: '1'),
+              string(name: 'LOOP_COUNT', value: '5'),
               string(name: 'DT_LTN', value: "HealthCheck_${BUILD_NUMBER}"),
               string(name: 'FUNC_VALIDATION', value: 'yes'),
               string(name: 'AVG_RT_VALIDATION', value: '0'),
