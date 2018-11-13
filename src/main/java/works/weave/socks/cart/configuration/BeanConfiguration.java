@@ -11,6 +11,7 @@ import works.weave.socks.cart.repositories.CartRepository;
 import works.weave.socks.cart.repositories.ItemRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Configuration
 public class BeanConfiguration {
@@ -50,8 +51,8 @@ public class BeanConfiguration {
             }
 
             @Override
-            public Item findOne(String id) {
-                return itemRepository.findOne(id);
+            public Optional<Item> findOne(String id) {
+                return itemRepository.findById(id);
             }
         };
     }
